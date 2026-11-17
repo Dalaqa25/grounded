@@ -109,7 +109,6 @@ export default async function EvalsPage() {
                   <th className="py-2 text-right font-medium">Retrieval</th>
                   <th className="py-2 text-right font-medium">Grounding</th>
                   <th className="py-2 text-right font-medium">Refusal</th>
-                  <th className="py-2 text-right font-medium">Median</th>
                 </tr>
               </thead>
               <tbody className="font-mono tabular-nums text-ink-muted">
@@ -123,9 +122,6 @@ export default async function EvalsPage() {
                     <td className="py-2.5 text-right text-[0.82rem]">{row.retrieval}%</td>
                     <td className="py-2.5 text-right text-[0.82rem]">{row.grounding}%</td>
                     <td className="py-2.5 text-right text-[0.82rem]">{row.refusal}%</td>
-                    <td className="py-2.5 text-right text-[0.82rem] text-ink-faint">
-                      {row.medianLatencyMs}ms
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -168,9 +164,6 @@ export default async function EvalsPage() {
                           {" · "}
                           {item.groundingOk ? "cited" : "uncited"}
                         </span>
-                        <span className="figure-num w-14 shrink-0 text-right">
-                          {item.latencyMs}ms
-                        </span>
                       </li>
                     ))}
                   </ol>
@@ -183,7 +176,12 @@ export default async function EvalsPage() {
             Generated {new Date(results.generatedAt).toLocaleString("en-GB")}. Answers
             written by {results.model}, graded by{" "}
             {results.judgeModel ?? "a second model"} against a written rubric per
-            question.
+            question. Timings are deliberately not reported here: a batch run
+            against a free tier spends most of its wall clock waiting out
+            per-minute token limits, which measures the quota rather than the
+            system. Live, a question is answered in two to three seconds, and
+            every answer in the app prints its own retrieval and generation
+            time.
           </p>
         </>
       )}
