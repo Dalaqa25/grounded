@@ -49,16 +49,28 @@ export function Masthead({ repoUrl }: { repoUrl: string }) {
 
       {/* Section rule: the workspace tabs sit on it like a contents line. */}
       <div className="border-t border-rule">
-        <div className="mx-auto flex max-w-[86rem] items-stretch gap-0 px-6">
+        <div className="mx-auto flex max-w-[86rem] items-stretch gap-0 overflow-x-auto px-6">
+          <Link
+            href="/"
+            className={`group relative -mb-px shrink-0 border-b-2 py-2 pr-7 transition-colors ${
+              pathname === "/" ? "border-accent" : "border-transparent hover:border-rule-strong"
+            }`}
+          >
+            <span
+              className={`text-[0.95rem] ${
+                pathname === "/" ? "text-ink" : "text-ink-muted group-hover:text-ink"
+              }`}
+            >
+              Overview
+            </span>
+          </Link>
           {MODES.map((mode, i) => {
             const active = pathname === `/${mode.id}`;
             return (
               <Link
                 key={mode.id}
                 href={`/${mode.id}`}
-                className={`group relative -mb-px border-b-2 py-2 pr-7 transition-colors ${
-                  i > 0 ? "pl-7" : ""
-                } ${
+                className={`group relative -mb-px shrink-0 border-b-2 py-2 pl-7 pr-7 transition-colors ${
                   active
                     ? "border-accent"
                     : "border-transparent hover:border-rule-strong"

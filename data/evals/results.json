@@ -1,24 +1,44 @@
 {
-  "generatedAt": "2026-11-17T06:57:30.289Z",
+  "generatedAt": "2026-11-17T07:41:13.333Z",
   "retrievalMode": "hybrid",
   "model": "openai/gpt-oss-120b",
   "judgeModel": "openai/gpt-oss-20b",
   "overall": {
-    "accuracy": 67,
+    "accuracy": 69,
     "retrieval": 100,
-    "grounding": 100,
-    "cases": 15
+    "grounding": 80,
+    "cases": 45
   },
   "summary": [
     {
       "workspace": "talent",
       "name": "Talent Match",
       "cases": 15,
-      "accuracy": 67,
+      "accuracy": 60,
       "retrieval": 100,
-      "grounding": 100,
+      "grounding": 73,
+      "refusal": 0,
+      "medianLatencyMs": 45978
+    },
+    {
+      "workspace": "handbook",
+      "name": "Company Knowledge",
+      "cases": 15,
+      "accuracy": 73,
+      "retrieval": 100,
+      "grounding": 80,
       "refusal": 100,
-      "medianLatencyMs": 4522
+      "medianLatencyMs": 45620
+    },
+    {
+      "workspace": "docs",
+      "name": "Docs Copilot",
+      "cases": 15,
+      "accuracy": 73,
+      "retrieval": 100,
+      "grounding": 87,
+      "refusal": 100,
+      "medianLatencyMs": 45468
     }
   ],
   "results": {
@@ -31,8 +51,8 @@
         "groundingOk": true,
         "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Answer covers all rubric points with correct details",
-        "latencyMs": 4979,
+        "judgeNote": "Answer covers all rubric requirements and adds no contradictory information.",
+        "latencyMs": 47737,
         "retrievedSources": [
           "data/talent/01-amara-osei.md",
           "data/talent/11-nino-beridze.md",
@@ -43,7 +63,7 @@
           "data/talent/12-lucas-dubois.md",
           "data/talent/02-jonas-lindqvist.md"
         ],
-        "answer": "**Production OAuth experience**\n\n| Candidate | Years of relevant experience | OAuth work in production |\n|-----------|-----------------------------|--------------------------|\n| **Amara Osei** | 9 years total in integration engineering; Lead Integration Engineer at Freightwell since 2022 | Designed and runs a single OAuth 2.0 broker with refresh‑token rotation and per‑tenant encrypted credential storage for 61 connectors, cutting incidents from ~14/month to 3 [3] |\n| **Tomasz Wójcik** | 2 years as Full‑Stack Engineer at Rivet Commerce (2022‑present) | Built OAuth connections to Shopify and BigCommerce as part of the merchant onboarding flow and webhook handlers [7] |\n\n**Production third‑party API integration experience**\n\n| Candidate | Years of relevant experience | Third‑party API integrations |\n|-----------|-----------------------------|------------------------------|\n| **Amara Osei** | 9 years total; Lead Integration Engineer (2022‑present) | Rebuilt a connector estate of 61 integrations, each using shared auth and retry framework [3] |\n| **Nino Beridze** | 2 years as Integration Developer at Banyan Labs (2021‑2023) | Built and maintained 30+ third‑party API integrations (auth, error handling, sync edge cases) [2] |\n| **Tomasz Wójcik** | 2 years (2022‑present) | Implemented webhook handlers that keep catalogs in sync across Shopify and BigCommerce integrations [7] |\n\n**Summary of trade‑off**\n\n- **Amara Osei** offers deep, end‑to‑end OAuth production expertise plus large‑scale connector management (61 integrations).  \n- **Tomasz Wójcik** provides solid OAuth implementation for major e‑commerce platforms and webhook‑driven sync, but at a smaller scale.  \n- **Nino Beridze** has extensive third‑party API integration experience (30+), though OAuth is not explicitly documented.  \n\nChoose Amara for the most comprehensive OAuth and integration platform experience; choose Tomasz if the focus is on e‑commerce OAuth flows; choose Nino for breadth of third‑party API work without proven OAuth implementation."
+        "answer": "**Candidates with documented production experience in OAuth and third‑party API integrations**\n\n| Candidate | Relevant role(s) | OAuth / integration work |\n|-----------|-----------------|--------------------------|\n| **Amara Osei** | Lead Integration Engineer, Freightwell (2022–present) | Rebuilt a 61‑connector estate, introduced a single OAuth 2.0 broker with refresh‑token rotation and per‑tenant encrypted credential storage; owns webhook ingress handling 2.1 million events/day with idempotency and dead‑letter queue. [3] |\n| **Nino Beridze** | Integration Developer, Banyan Labs (2021–2023) | Built and maintained 30+ third‑party API integrations, handling authentication, error handling, and sync edge cases. [2] |\n| **Tomasz Wójcik** | Full‑Stack Engineer, Rivet Commerce (2022–present) | Built merchant onboarding flow, including OAuth connections to Shopify and BigCommerce, and webhook handlers for catalog sync. [7] |\n| **Lucas Dubois** | Customer Success Engineer | Skilled in OAuth debugging and REST API integration support. [9] |\n\nThese four candidates have explicit, production‑level experience with OAuth authentication flows and/or third‑party API integrations."
       },
       {
         "id": "t02",
@@ -53,8 +73,8 @@
         "groundingOk": true,
         "accurate": false,
         "refusedCorrectly": null,
-        "judgeNote": "Missing required details about the clinical reference assistant and chunk count",
-        "latencyMs": 1984,
+        "judgeNote": "Missing key details about Priya Raman's clinical reference assistant and chunk count",
+        "latencyMs": 48901,
         "retrievedSources": [
           "data/talent/11-nino-beridze.md",
           "data/talent/03-priya-raman.md",
@@ -63,18 +83,18 @@
           "data/talent/09-hannah-weber.md",
           "data/talent/01-amara-osei.md"
         ],
-        "answer": "Priya Raman has taken a retrieval‑augmented generation (RAG) system from notebook to production and kept it running in production [2]."
+        "answer": "Priya Raman has taken a RAG system from notebook to production and kept it there, which is noted as a rare achievement in the talent pool. [2]  \nNino Beridze shipped a retrieval‑assistant over customer documentation in his Loomwork product, using pgvector and hybrid search – a classic RAG deployment. [1]"
       },
       {
         "id": "t03",
         "question": "Which candidates are in a UTC+2 to UTC+4 timezone?",
         "answerable": true,
         "retrievalHit": true,
-        "groundingOk": true,
+        "groundingOk": false,
         "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Answer correctly identifies Nino Beridze in UTC+4 and does not include UTC+1 candidates.",
-        "latencyMs": 2794,
+        "judgeNote": "Answer correctly identifies Nino Beridze in UTC+4 and excludes UTC+1 candidates.",
+        "latencyMs": 48910,
         "retrievedSources": [
           "data/talent/03-priya-raman.md",
           "data/talent/04-tomasz-wójcik.md",
@@ -86,18 +106,18 @@
           "data/talent/07-mei-tanaka.md",
           "data/talent/06-daniel-ferreira.md"
         ],
-        "answer": "- Nino Beridze — AI Solutions Engineer — located in Tbilisi, Georgia (UTC+4)【3】"
+        "answer": "**Candidate in UTC + 2 to UTC + 4**\n\n| Name | Location | Timezone | Availability | Rate expectation |\n|------|----------|----------|--------------|------------------|\n| Nino Beridze | Tbilisi, Georgia | UTC + 4 | Immediately, part‑time first month | USD 4,300 / month |\n\nNino Beridze is the only candidate whose listed timezone falls within the UTC + 2 to UTC + 4 range."
       },
       {
         "id": "t04",
         "question": "Who can start immediately?",
         "answerable": true,
         "retrievalHit": true,
-        "groundingOk": true,
-        "accurate": true,
+        "groundingOk": false,
+        "accurate": false,
         "refusedCorrectly": null,
-        "judgeNote": "Answer correctly lists all three candidates and notes Nino's part‑time start.",
-        "latencyMs": 2466,
+        "judgeNote": "Missing part‑time detail for Nino Beridze",
+        "latencyMs": 46087,
         "retrievedSources": [
           "data/talent/06-daniel-ferreira.md",
           "data/talent/02-jonas-lindqvist.md",
@@ -107,7 +127,7 @@
           "data/talent/01-amara-osei.md",
           "data/talent/05-sofia-marchetti.md"
         ],
-        "answer": "- Daniel Ferreira – Availability: Immediately【1】  \n- Jonas Lindqvist – Availability: Immediately【2】  \n- Nino Beridze – Availability: Immediately (part‑time first month)【3】"
+        "answer": "**Candidates who can start immediately**\n\n| Name | Role | Location | Rate | Languages |\n|------|------|----------|------|-----------|\n| Daniel Ferreira | AI Automation Engineer | Lisbon, Portugal | EUR 3,900 / month | Portuguese (native), English (C1), Spanish (C1) |\n| Jonas Lindqvist | Forward Deployed Engineer | Stockholm, Sweden | EUR 6,000 / month | Swedish (native), English (C2), German (B1) |\n| Nino Beridze | AI Solutions Engineer | Tbilisi, Georgia | USD 4,300 / month | Georgian (native), English (C1), Russian (A2) |\n\nThese three candidates have “Availability: Immediately” listed in their profiles."
       },
       {
         "id": "t05",
@@ -117,8 +137,8 @@
         "groundingOk": true,
         "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Answer covers rubric requirements and presents a clear trade‑off.",
-        "latencyMs": 3650,
+        "judgeNote": "Answer covers required comparison and trade‑off.",
+        "latencyMs": 49522,
         "retrievedSources": [
           "data/talent/02-jonas-lindqvist.md",
           "data/talent/06-daniel-ferreira.md",
@@ -129,7 +149,7 @@
           "data/talent/03-priya-raman.md",
           "data/talent/04-tomasz-wójcik.md"
         ],
-        "answer": "**Top forward‑deployed engineer candidates**\n\n| Candidate | Relevant Experience | Customer‑facing style | Technical depth | Travel / availability | Notable trade‑off |\n|-----------|--------------------|-----------------------|-----------------|-----------------------|-------------------|\n| **Jonas Lindqvist** | Forward Deployed Engineer at Palinode Systems (2023‑present) – built prototype pipelines in customer stacks, shipped a document‑intake pipeline that cut claim triage from 3 days to <4 hours; wrote evaluation harness used for regression testing【2】 | Strong communicator, pushes back on scope in a way customers like; “allergic to tickets” and prefers owning outcomes rather than backlog work【1】 | Embedded work across manufacturing and insurance; hands‑on prototype delivery and evaluation tooling【2】 | Willing to travel up to 30%【1】 | **Trade‑off:** Very strong at front‑end customer interaction and rapid prototyping, but less evidence of deep integration‑engineer experience (e.g., OAuth broker, high‑volume webhook handling). |\n| **Nino Beridze** | AI Solutions Engineer – combines integration depth with production LLM work; runs coding‑agent pipelines, reviews every diff, has run a product end‑to‑end alone【5】 | Comfortable with coding agents; no explicit note on customer‑facing style, but “real production LLM work” implies delivery to users; would start part‑time before full‑time【5】 | Deep integration experience plus LLM production; reviews code diffs, indicating strong engineering rigor【5】 | No travel constraints mentioned; can transition from part‑time to full‑time【5】 | **Trade‑off:** Brings rare mix of integration depth and LLM production, but less documented as a front‑line communicator who can push back on scope like Jonas. |\n\n**Overall comparison**\n\n- **Customer interaction:** Jonas excels at communicating and managing scope with customers, a core forward‑deployed skill【1】. Nino’s profile does not highlight this strength, so you may need to supplement with support on the customer‑facing side.  \n- **Technical breadth:** Nino offers a unique blend of deep integration work and production LLM experience, which is valuable for AI‑centric deployments【5】. Jonas provides solid prototype delivery and evaluation tooling but lacks explicit LLM production experience.  \n- **Availability & logistics:** Jonas is ready for a role with up to 30 % travel【1】; Nino can begin part‑time and move to full‑time, with no travel requirement noted【5】.  \n\n**Recommendation:** Choose **Jonas Lindqvist** if the role prioritizes strong customer communication, rapid prototyping, and willingness to travel. Choose **Nino Beridze** if the role demands deep integration expertise combined with production LLM capabilities and can accommodate a ramp‑up period."
+        "answer": "**Jonas Lindqvist**  \n- 2023‑present: Forward‑Deployed Engineer at Palinode Systems, embedded with five enterprise customers in manufacturing and insurance.  \n- Delivered a document‑intake pipeline that cut claims triage from 3 days to <4 hours (90‑day pilot).  \n- Wrote an evaluation harness still used by the account team.  \n- 2020‑2023: Solutions Consultant at Nordkraft Digital – pre‑sales, discovery workshops, demo building, deal delivery.  \n- Strong communicator, pushes back on scope, “allergic to tickets”, wants ownership of outcome, willing to travel up to 30 %【1】【2】.\n\n**Nino Beridze**  \n- AI Solutions Engineer – integration depth plus real production LLM work, runs a product alone.  \n- Works mostly with coding agents, reviews every diff.  \n- Will start part‑time alongside current role, then go full‑time【5】.\n\n**Trade‑off**  \n- **Jonas** offers proven forward‑deployed delivery, measurable impact on customer processes, and a clear preference for ownership and customer interaction.  \n- **Nino** brings deeper integration expertise and hands‑on LLM production experience, but his current role limits immediate full‑time availability and he has less documented customer‑facing delivery history.  \n- If the priority is rapid, high‑impact customer engagement, Jonas is the stronger fit. If the focus is on deep LLM integration and code‑review discipline, Nino is preferable."
       },
       {
         "id": "t06",
@@ -140,7 +160,7 @@
         "accurate": true,
         "refusedCorrectly": null,
         "judgeNote": "Answer includes both required names.",
-        "latencyMs": 2561,
+        "latencyMs": 45892,
         "retrievedSources": [
           "data/talent/06-daniel-ferreira.md",
           "data/talent/11-nino-beridze.md",
@@ -149,7 +169,7 @@
           "data/talent/08-ousmane-diallo.md",
           "data/talent/02-jonas-lindqvist.md"
         ],
-        "answer": "- **Daniel Ferreira** – AI Automation Engineer; uses n8n for workflow orchestration and built custom TypeScript nodes [3]  \n- **Nino Beridze** – AI Solutions Engineer; lists n8n among his toolset [4]"
+        "answer": "- **Daniel Ferreira** – Founder, Lumo Automation; builds internal automations using n8n for orchestration with custom TypeScript nodes. [1][3]  \n- **Nino Beridze** – AI Solutions Engineer; lists n8n among the technologies used. [4]"
       },
       {
         "id": "t07",
@@ -157,10 +177,10 @@
         "answerable": true,
         "retrievalHit": true,
         "groundingOk": true,
-        "accurate": false,
+        "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Includes an extra candidate not in rubric",
-        "latencyMs": 5480,
+        "judgeNote": "Answer correctly identifies Amara Osei and her preference.",
+        "latencyMs": 46109,
         "retrievedSources": [
           "data/talent/01-amara-osei.md",
           "data/talent/02-jonas-lindqvist.md",
@@ -172,7 +192,7 @@
           "data/talent/04-tomasz-wójcik.md",
           "data/talent/11-nino-beridze.md"
         ],
-        "answer": "- Amara Osei – says she “does not want a role with more than about 20 % time in front of customers”【1】  \n- Priya Raman – notes she “would need support on the customer‑facing side,” indicating she does not want a customer‑facing role【6】"
+        "answer": "- **Amara Osei** – explicitly stated she does not want a role with more than about 20 % time in front of customers. [1]"
       },
       {
         "id": "t08",
@@ -183,7 +203,7 @@
         "accurate": false,
         "refusedCorrectly": null,
         "judgeNote": "refused an answerable question",
-        "latencyMs": 6889,
+        "latencyMs": 45849,
         "retrievedSources": [
           "data/talent/11-nino-beridze.md",
           "data/talent/03-priya-raman.md",
@@ -194,18 +214,18 @@
           "data/talent/07-mei-tanaka.md",
           "data/talent/10-rafael-santos.md"
         ],
-        "answer": "The sources do not provide any compensation or rate information for candidates who have real LLM production experience (e.g., Nino Beridze, Priya Raman, Jonas Lindqvist). Without cost data, the cheapest such candidate cannot be identified."
+        "answer": "The sources do not provide any salary or rate information for Nino Beridze, Priya Raman, or Jonas Lindqvist, who are the only candidates with documented real‑world LLM production experience. Therefore, I cannot determine which of them is the cheapest."
       },
       {
         "id": "t09",
         "question": "Who needs visa sponsorship?",
         "answerable": true,
         "retrievalHit": true,
-        "groundingOk": true,
-        "accurate": false,
+        "groundingOk": false,
+        "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Missing mention that Priya is happy to work remotely.",
-        "latencyMs": 8243,
+        "judgeNote": "Answer correctly identifies Priya Raman and her need for EU visa sponsorship for on‑site work.",
+        "latencyMs": 3602,
         "retrievedSources": [
           "data/talent/03-priya-raman.md",
           "data/talent/07-mei-tanaka.md",
@@ -217,7 +237,7 @@
           "data/talent/05-sofia-marchetti.md",
           "data/talent/11-nino-beridze.md"
         ],
-        "answer": "Priya Raman – would require sponsorship for on‑site work in the EU【1】"
+        "answer": "Priya Raman requires visa sponsorship for on‑site work in the EU."
       },
       {
         "id": "t10",
@@ -228,7 +248,7 @@
         "accurate": false,
         "refusedCorrectly": null,
         "judgeNote": "Missing Priya Raman and her evaluation work",
-        "latencyMs": 7580,
+        "latencyMs": 44818,
         "retrievedSources": [
           "data/talent/11-nino-beridze.md",
           "data/talent/03-priya-raman.md",
@@ -237,7 +257,7 @@
           "data/talent/01-amara-osei.md",
           "data/talent/02-jonas-lindqvist.md"
         ],
-        "answer": "- **Nino Beridze** – built a replayed evaluation suite of 325 recorded cases, running every prompt change against it before release [1]  \n- **Jonas Lindqvist** – wrote the evaluation harness that the account team uses to catch regressions before each release [9]"
+        "answer": "- **Nino Beridze** – built a replayed evaluation suite of 325 recorded cases for Loomwork, re‑running every prompt change before release. [1]  \n- **Jonas Lindqvist** – wrote the evaluation harness that the account team still uses to catch regressions before each release. [9]"
       },
       {
         "id": "t11",
@@ -247,8 +267,8 @@
         "groundingOk": true,
         "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Answer correctly identifies Hannah Weber and her preference for permanent employment.",
-        "latencyMs": 2946,
+        "judgeNote": "Answer correctly identifies Hannah Weber and her stance.",
+        "latencyMs": 3421,
         "retrievedSources": [
           "data/talent/09-hannah-weber.md",
           "data/talent/01-amara-osei.md",
@@ -260,7 +280,7 @@
           "data/talent/08-ousmane-diallo.md",
           "data/talent/06-daniel-ferreira.md"
         ],
-        "answer": "Hannah Weber is the only candidate who stated she is explicitly looking for a permanent role and does not want a contract position【1】."
+        "answer": "Hannah Weber is the only candidate who stated she is explicitly looking for a permanent role and will not consider contract work【1】."
       },
       {
         "id": "t12",
@@ -270,8 +290,8 @@
         "groundingOk": true,
         "accurate": true,
         "refusedCorrectly": null,
-        "judgeNote": "Answer correctly identifies Rafael Santos and the overlap constraints.",
-        "latencyMs": 4145,
+        "judgeNote": "Answer correctly identifies Rafael Santos and the overlap details.",
+        "latencyMs": 45178,
         "retrievedSources": [
           "data/talent/03-priya-raman.md",
           "data/talent/10-rafael-santos.md",
@@ -283,7 +303,7 @@
           "data/talent/05-sofia-marchetti.md",
           "data/talent/02-jonas-lindqvist.md"
         ],
-        "answer": "Rafael Santos would struggle with European working hours; he can only provide four hours of overlap, beginning at 13:00 CET, which the source flags as a timezone obstacle for European teams【2】."
+        "answer": "Rafael Santos would struggle with European working hours because his timezone limits overlap to only four hours, starting at 13:00 CET. [2]"
       },
       {
         "id": "t13",
@@ -294,7 +314,7 @@
         "accurate": true,
         "refusedCorrectly": null,
         "judgeNote": "Answer matches rubric details.",
-        "latencyMs": 12422,
+        "latencyMs": 46858,
         "retrievedSources": [
           "data/talent/07-mei-tanaka.md",
           "data/talent/06-daniel-ferreira.md",
@@ -304,7 +324,7 @@
           "data/talent/04-tomasz-wójcik.md",
           "data/talent/10-rafael-santos.md"
         ],
-        "answer": "Mei Tanaka – Senior Developer Advocate at Hexfold (2022‑present) has public‑speaking experience (≈ eight conferences a year) and community‑management experience (runs a Discord of 11 000 developers)【1】【2】."
+        "answer": "**Mei Tanaka** – Developer Advocate  \n- Public speaking: speaks at roughly eight conferences a year【1】.  \n- Developer community experience: runs a Discord of 11,000 developers【1】."
       },
       {
         "id": "t14",
@@ -312,10 +332,10 @@
         "answerable": true,
         "retrievalHit": true,
         "groundingOk": true,
-        "accurate": true,
+        "accurate": false,
         "refusedCorrectly": null,
-        "judgeNote": "Answer correctly lists the candidates who have never worked with LLMs.",
-        "latencyMs": 10113,
+        "judgeNote": "Answer includes extra names and omits Tomasz Wójcik, violating the rubric.",
+        "latencyMs": 45978,
         "retrievedSources": [
           "data/talent/01-amara-osei.md",
           "data/talent/11-nino-beridze.md",
@@ -325,18 +345,18 @@
           "data/talent/03-priya-raman.md",
           "data/talent/05-sofia-marchetti.md"
         ],
-        "answer": "- Amara Osei – explicitly “has never worked with LLMs beyond using an assistant for code” [1]  \n- Ousmane Diallo – “No LLM experience” [5]"
+        "answer": "- **Amara Osei** – stated she has never worked with LLMs beyond using an assistant for code. [1]  \n- **Daniel Ferreira** – no mention of production LLM work; only a prototype RAG effort. [3]  \n- **Ousmane Diallo** – explicitly noted no LLM experience. [5]  \n- **Sofia Marchetti** – no LLM work mentioned in her notes. [8]"
       },
       {
         "id": "t15",
         "question": "Which candidate has a security clearance?",
         "answerable": false,
         "retrievalHit": null,
-        "groundingOk": true,
-        "accurate": true,
-        "refusedCorrectly": true,
-        "judgeNote": "correctly declined",
-        "latencyMs": 4522,
+        "groundingOk": false,
+        "accurate": false,
+        "refusedCorrectly": false,
+        "judgeNote": "answered a question the corpus cannot support",
+        "latencyMs": 44957,
         "retrievedSources": [
           "data/talent/05-sofia-marchetti.md",
           "data/talent/11-nino-beridze.md",
@@ -348,7 +368,525 @@
           "data/talent/02-jonas-lindqvist.md",
           "data/talent/07-mei-tanaka.md"
         ],
-        "answer": "The sources do not mention any candidate having a security clearance."
+        "answer": "The sources do not indicate that any of the candidates have a security clearance."
+      }
+    ],
+    "handbook": [
+      {
+        "id": "h01",
+        "question": "How much remote-work equipment budget do I get, and how do I claim it?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches all rubric points and adds no contradictions.",
+        "latencyMs": 45620,
+        "retrievedSources": [
+          "data/handbook/01-remote-work-and-equipment.md",
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/02-time-off-and-leave.md"
+        ],
+        "answer": "**Remote‑work equipment budget**  \n- First year: **EUR 2,000**.  \n- Subsequent years: **EUR 800** per year, non‑rollover.  \n- Contractors on >6‑month engagements receive the recurring EUR 800 but not the first‑year uplift.  \n- The budget covers peripherals, desk, chair, monitor, lighting, headphones and internet upgrades; it does **not** cover the primary laptop or phones. [1]\n\n**How to claim**  \n1. Purchase the item yourself.  \n2. Submit the receipt in Expensify under the category **Home Office** within **60 days** of purchase.  \n3. Your manager must approve the claim.  \n4. If the item costs **> EUR 600** in a single purchase, Finance approval (handled by Mirela Petrov) is also required.  \n5. Reimbursement is paid with the next payroll run.  \n6. Items costing **> EUR 400** remain company property and must be returned to IT when you leave; items below that threshold stay with you. [3]"
+      },
+      {
+        "id": "h02",
+        "question": "What is the process for taking parental leave?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer covers all rubric points correctly.",
+        "latencyMs": 12190,
+        "retrievedSources": [
+          "data/handbook/02-time-off-and-leave.md",
+          "data/handbook/01-remote-work-and-equipment.md",
+          "data/handbook/06-security-and-access.md",
+          "data/handbook/05-expenses-and-travel.md"
+        ],
+        "answer": "Parental leave entitlement  \n- Birthing parents: 20 weeks at full pay.  \n- Non‑birthing and adoptive parents: 12 weeks at full pay, which may be split into up to three blocks within the first 18 months.  \n- This is on top of any statutory entitlement; if the statutory minimum is higher, you receive the statutory amount. [1]\n\nProcess to request leave  \n1. Tell your manager and People when you are ready. We ask for eight weeks’ notice where possible, but nobody is penalised for less.  \n2. People confirm the dates in writing and arrange cover with your manager.  \n3. A handover document is expected in the last two weeks.  \n4. Returning is phased: the first two weeks back are at 60 % hours, full pay.  \nQuestions go to Dilara Yilmaz in People. [3]"
+      },
+      {
+        "id": "h03",
+        "question": "Can I use ChatGPT on customer code?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly states restrictions and allowed tools.",
+        "latencyMs": 12129,
+        "retrievedSources": [
+          "data/handbook/04-ai-tools-policy.md",
+          "data/handbook/06-security-and-access.md",
+          "data/handbook/03-engineering-practice.md"
+        ],
+        "answer": "No. Customer code may only be used in tools covered by a zero‑retention agreement, which today includes Claude Code and the Anthropic API. ChatGPT / OpenAI API is **not** approved for customer code or customer data. If you need to use a tool that is not listed, you must request approval from Security, who will respond within a week. [1][2]"
+      },
+      {
+        "id": "h04",
+        "question": "Who approves a production deploy on a Friday?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing mention of hotfix exemption",
+        "latencyMs": 28628,
+        "retrievedSources": [
+          "data/handbook/03-engineering-practice.md",
+          "data/handbook/06-security-and-access.md",
+          "data/handbook/04-ai-tools-policy.md"
+        ],
+        "answer": "Production deploys after 14:00 UTC on Friday require sign‑off from the on‑call engineer and the engineering manager who owns the service [1]."
+      },
+      {
+        "id": "h05",
+        "question": "How many days of annual leave do I get and can I carry them over?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric exactly",
+        "latencyMs": 55981,
+        "retrievedSources": [
+          "data/handbook/02-time-off-and-leave.md",
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/01-remote-work-and-equipment.md"
+        ],
+        "answer": "30 days of annual leave per year, excluding public holidays [1].  \nUp to 10 unused days may be carried into the next year, but they must be taken by 31 March [1].  "
+      },
+      {
+        "id": "h06",
+        "question": "How many reviewers does a change to the billing service need?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric requirements.",
+        "latencyMs": 45687,
+        "retrievedSources": [
+          "data/handbook/03-engineering-practice.md",
+          "data/handbook/06-security-and-access.md",
+          "data/handbook/04-ai-tools-policy.md"
+        ],
+        "answer": "A change to the billing service must receive **two approving reviews**. One of those reviews must come from the owning team of the billing service. [1]"
+      },
+      {
+        "id": "h07",
+        "question": "What is the on-call compensation?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing the no project work clause",
+        "latencyMs": 45459,
+        "retrievedSources": [
+          "data/handbook/03-engineering-practice.md",
+          "data/handbook/06-security-and-access.md",
+          "data/handbook/01-remote-work-and-equipment.md"
+        ],
+        "answer": "On‑call compensation is **EUR 350 per week** plus **EUR 90 for each night interrupted**. [1]"
+      },
+      {
+        "id": "h08",
+        "question": "Do I need a doctor's note when I am sick?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric requirements.",
+        "latencyMs": 45461,
+        "retrievedSources": [
+          "data/handbook/02-time-off-and-leave.md",
+          "data/handbook/03-engineering-practice.md",
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/01-remote-work-and-equipment.md"
+        ],
+        "answer": "No. For the first five consecutive days of sickness you do not need a doctor’s note. Beyond that, local law applies and People will tell you what is required. [1]"
+      },
+      {
+        "id": "h09",
+        "question": "What is the hotel budget for a trip to London?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing comparison to EUR 180 for most cities",
+        "latencyMs": 48258,
+        "retrievedSources": [
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/01-remote-work-and-equipment.md",
+          "data/handbook/06-security-and-access.md"
+        ],
+        "answer": "Hotel budget in London: **EUR 260 per night**【2】"
+      },
+      {
+        "id": "h10",
+        "question": "How do I get temporary access to production data?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": false,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer covers all rubric points correctly.",
+        "latencyMs": 46077,
+        "retrievedSources": [
+          "data/handbook/06-security-and-access.md",
+          "data/handbook/04-ai-tools-policy.md",
+          "data/handbook/03-engineering-practice.md"
+        ],
+        "answer": "Production access is granted per role and reviewed quarterly.  \nIf you need temporary access to production data, request it through the `#access` workflow; it will be granted for **eight hours** and the reason will be logged.  \nStanding access to customer data is limited to the on‑call engineer and the three people on the platform team.  \n\nFor any request to export, delete or share customer data, the request must go through Legal; do not run the query yourself first.  \n\nIf you need to debug with real data, use the scrubbed staging dataset instead of production.  \n\nFor vendor tools that touch customer data, a vendor review is required before purchase; submit in `#security` and expect about a week.  \n\n**Who to contact**:  \n- Use the `#access` channel for temporary access requests.  \n- For data export/delete/share requests, contact Legal.  \n- For vendor reviews, post in `#security`."
+      },
+      {
+        "id": "h11",
+        "question": "Can I expense a co-working desk?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": false,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric exactly",
+        "latencyMs": 45949,
+        "retrievedSources": [
+          "data/handbook/01-remote-work-and-equipment.md",
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/04-ai-tools-policy.md",
+          "data/handbook/02-time-off-and-leave.md"
+        ],
+        "answer": "Yes. You can expense a co‑working desk up to **EUR 250 per month**. Submit the expense monthly under the **Co‑working** category; no pre‑approval is required. If you need further clarification, contact your manager."
+      },
+      {
+        "id": "h12",
+        "question": "Does my learning budget cover conference travel?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": false,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing mention of five working days and no rollover",
+        "latencyMs": 47128,
+        "retrievedSources": [
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/01-remote-work-and-equipment.md",
+          "data/handbook/02-time-off-and-leave.md"
+        ],
+        "answer": "Yes. The learning budget of **EUR 1,200 a year** includes courses, books **and conferences**. Conference travel is paid from the learning budget, not from the travel budget. No further exception applies. If you need to book a conference, use the learning budget and book through the normal expense process."
+      },
+      {
+        "id": "h13",
+        "question": "Can an AI agent open pull requests on its own?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly states that AI cannot open PRs unattended and cites policy.",
+        "latencyMs": 48181,
+        "retrievedSources": [
+          "data/handbook/04-ai-tools-policy.md",
+          "data/handbook/03-engineering-practice.md",
+          "data/handbook/06-security-and-access.md"
+        ],
+        "answer": "No. The policy explicitly forbids an AI agent from committing, pushing, or opening a pull request unattended on a production repository. [1]"
+      },
+      {
+        "id": "h14",
+        "question": "I think I leaked an API key. What should I do?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer fully meets rubric requirements.",
+        "latencyMs": 45078,
+        "retrievedSources": [
+          "data/handbook/04-ai-tools-policy.md",
+          "data/handbook/06-security-and-access.md"
+        ],
+        "answer": "Report it immediately in #security‑incident. There is no penalty for fast reporting and a real one for staying quiet [2]. If it’s after hours, page the security on‑call via PagerDuty [2]."
+      },
+      {
+        "id": "h15",
+        "question": "What is the company's policy on stock options and vesting?",
+        "answerable": false,
+        "retrievalHit": null,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": true,
+        "judgeNote": "correctly declined",
+        "latencyMs": 44999,
+        "retrievedSources": [
+          "data/handbook/04-ai-tools-policy.md",
+          "data/handbook/02-time-off-and-leave.md",
+          "data/handbook/05-expenses-and-travel.md",
+          "data/handbook/06-security-and-access.md"
+        ],
+        "answer": "The policy does not cover stock options or vesting. The nearest owner is the Compensation team."
+      }
+    ],
+    "docs": [
+      {
+        "id": "d01",
+        "question": "How do I retry a failed step without re-running the whole workflow?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly describes resume API and UI usage.",
+        "latencyMs": 47089,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/02-passing-data-between-steps.md"
+        ],
+        "answer": "To retry only the failed step (without re‑executing earlier steps):\n\n1. **Via the UI**  \n   - Open the run.  \n   - Click **Resume from failed step**.  \n\n2. **Via the API**  \n   ```http\n   POST /v1/runs/{run_id}/resume\n   Content-Type: application/json\n\n   { \"from_step\": \"push_invoice\" }   # optional; omit to resume at first failed step\n   ```  \n   The step name is the `id` of the step you want to re‑run. If the named step already succeeded, that step and all subsequent steps will re‑execute.  \n\nThis uses the run’s recorded outputs for earlier steps, so only the specified step (and later ones) run again. [1][2]"
+      },
+      {
+        "id": "d02",
+        "question": "What does error AUTH_403_SCOPE mean and how do I fix it?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer covers all rubric points correctly.",
+        "latencyMs": 47669,
+        "retrievedSources": [
+          "data/docs/04-authentication-and-scopes.md",
+          "data/docs/07-error-reference.md"
+        ],
+        "answer": "`AUTH_403_SCOPE` means the connection used in the workflow does not have a scope required by a step.  \nFix: re‑authorise the connection so it requests the needed scope (e.g. `crm.objects.deals.write`). If re‑authorising does not help, the provider account itself lacks the permission and an admin must grant it before the OAuth flow can offer it. Check the scopes with `GET /v1/connections/{id}/scopes` to see `granted` vs `required` [1][4]"
+      },
+      {
+        "id": "d03",
+        "question": "What are the rate limits and how should I handle a 429?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing mention of adding jitter to retries",
+        "latencyMs": 37160,
+        "retrievedSources": [
+          "data/docs/05-rate-limits.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/03-retries-and-recovery.md"
+        ],
+        "answer": "**Rate limits**\n\n| Plan | Requests / minute | Concurrent runs | Burst |\n|------|-------------------|-----------------|-------|\n| Starter | 120 | 5 | 200 |\n| Growth | 600 | 25 | 900 |\n| Enterprise | 3,000 | 200 | negotiated | [2]\n\n*Limits are per workspace, not per API key. Run‑start requests count double against the per‑minute limit.* [2]\n\n**Handling a 429**\n\n1. The API returns  \n   ```json\n   { \"error\": \"RATE_LIMIT_EXCEEDED\", \"message\": \"Workspace limit of 600 req/min exceeded\", \"retry_after\": 12 }\n   ```  \n   Honour the `retry_after` value rather than backing off on your own schedule. [1]\n\n2. In a workflow, 429 is already in the default `retry_on` set, so steps back off automatically. Adjust `max_delay` if a long throttle could cause a run to fail prematurely. [1]\n\n3. Every response includes rate‑limit headers:  \n   ```\n   X-RateLimit-Limit: 600\n   X-RateLimit-Remaining: 413\n   X-RateLimit-Reset: 1764582000\n   Retry-After: 12\n   ```  \n   Use `Retry-After` only on a 429. [3]\n"
+      },
+      {
+        "id": "d04",
+        "question": "How do I pass data between two steps?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly references step IDs and explains available roots.",
+        "latencyMs": 3051,
+        "retrievedSources": [
+          "data/docs/02-passing-data-between-steps.md",
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "1. Give each step a unique `id`.  \n2. In a later step reference the earlier step’s output with a `{{ }}` expression that starts with that `id`【2】.  \n\n**Typical pattern**\n\n```yaml\nsteps:\n  - id: fetch_customer          # first step\n    type: http.request\n    with:\n      method: GET\n      url: https://api.example.com/customers/{{ trigger.body.customer_id }}\n\n  - id: create_ticket           # second step\n    type: zendesk.create_ticket\n    with:\n      connection_id: conn_8812\n      subject: \"Renewal for {{ fetch_customer.body.name }}\"\n      requester_email: \"{{ fetch_customer.body.email }}\"\n```\n\n- `fetch_customer.body` → parsed JSON response.  \n- `fetch_customer.text` → raw response text.  \n- `fetch_customer.headers` → response headers.  \n- `fetch_customer.status` → status code【2】.  \n\nAll earlier‑step roots are listed under **Available roots**【4】. Use them in any field that accepts expressions."
+      },
+      {
+        "id": "d05",
+        "question": "How long can I resume a failed run for?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing the limit of 10 resumes per run",
+        "latencyMs": 45281,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "You can resume a failed run for **14 days** after it failed, provided the run record is still within the retention period. [1]"
+      },
+      {
+        "id": "d06",
+        "question": "What is the default retry policy?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric exactly.",
+        "latencyMs": 44995,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/05-rate-limits.md",
+          "data/docs/02-passing-data-between-steps.md"
+        ],
+        "answer": "Default retry policy: 3 attempts, exponential backoff starting at 1 s, jittered, and only for retryable failures (connection errors, timeouts, HTTP 429, HTTP 5xx). [1]"
+      },
+      {
+        "id": "d07",
+        "question": "Why did my scheduled workflow not run twice at 7am?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing mention of clock-back night firing once",
+        "latencyMs": 45031,
+        "retrievedSources": [
+          "data/docs/07-error-reference.md",
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/01-concepts.md",
+          "data/docs/03-retries-and-recovery.md"
+        ],
+        "answer": "Because overlapping runs are skipped by default. If a previous run is still running when the cron matches again, the new run is dropped and recorded as `skipped` rather than starting a second instance. To allow two runs at 7 am you must set `allow_overlap: true` in the trigger. [2]"
+      },
+      {
+        "id": "d08",
+        "question": "How do I verify that a webhook really came from my system?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer includes signature verification details and 401 rejection as required.",
+        "latencyMs": 45521,
+        "retrievedSources": [
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/04-authentication-and-scopes.md",
+          "data/docs/05-rate-limits.md"
+        ],
+        "answer": "Verify a webhook by checking its signature:\n\n1. Configure the trigger with a signature block.  \n   ```yaml\n   trigger:\n     type: webhook\n     with:\n       method: POST\n       signature:\n         algorithm: hmac-sha256\n         header: X-Signature\n         secret: \"{{ secrets.WEBHOOK_SECRET }}\"\n   ```  \n   [1]\n\n2. Relay will compute the HMAC‑SHA256 of the request body using the secret and compare it to the value in the `X-Signature` header.  \n   If the values differ, Relay rejects the request with **401** and does not record a run.  \n   [1]"
+      },
+      {
+        "id": "d09",
+        "question": "What happens to runs that exhaust their retries?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric exactly.",
+        "latencyMs": 45496,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "Runs that exhaust their retries are moved to the workspace dead‑letter queue. They remain there for 14 days and can be resumed in bulk. Alerts can be enabled on DLQ depth in **Settings → Alerts**; the default threshold is 25. [2]"
+      },
+      {
+        "id": "d10",
+        "question": "What is the difference between resume and replay?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": false,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly distinguishes resume and replay per rubric.",
+        "latencyMs": 46392,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/04-authentication-and-scopes.md"
+        ],
+        "answer": "- **Resume**  \n  * Re‑executes only the failed step (or a later step if `from_step` is supplied).  \n  * Earlier steps are not re‑executed; their recorded outputs are reused.  \n  * Used when the failure was environmental (expired credential, provider outage, etc.).  \n  * Constraints: must be within 14 days, ≤10 resume attempts, cannot resume a cancelled run or a run whose workflow version was deleted.  \n  * API: `POST /v1/runs/{run_id}/resume` with optional `from_step`.  \n\n- **Replay**  \n  * Re‑executes the entire run from the beginning with the original trigger payload.  \n  * Creates a new run linked to the original via `replay_of`.  \n  * Used when the input was fine but the workflow logic was wrong and has been fixed.  \n  * API: `POST /v1/runs/{run_id}/replay`.  \n\nThus, resume continues from the point of failure, replay restarts the whole run."
+      },
+      {
+        "id": "d11",
+        "question": "What idempotency key should I use when resuming?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": false,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer uses a stable key based on run.id and step name, meeting rubric requirements.",
+        "latencyMs": 45360,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/04-authentication-and-scopes.md",
+          "data/docs/07-error-reference.md"
+        ],
+        "answer": "Use the run’s ID, not a timestamp.  \n```yaml\nwith:\n  headers:\n    Idempotency-Key: \"{{ run.id }}-push_invoice\"\n```"
+      },
+      {
+        "id": "d12",
+        "question": "How long does a synchronous webhook caller wait before timing out?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing details about respond: on_completion and default 202 behavior",
+        "latencyMs": 45468,
+        "retrievedSources": [
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/01-concepts.md",
+          "data/docs/05-rate-limits.md"
+        ],
+        "answer": "The caller waits up to **30 seconds** before receiving a 504 timeout. [1]"
+      },
+      {
+        "id": "d13",
+        "question": "Can I run arbitrary JavaScript inside a {{ }} expression?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly states that only a restricted subset is allowed.",
+        "latencyMs": 44848,
+        "retrievedSources": [
+          "data/docs/02-passing-data-between-steps.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "No. `{{ }}` expressions support only a restricted subset: property access, array indexing, and a small function library. Arbitrary JavaScript is not allowed inside `{{ }}`. [1]"
+      },
+      {
+        "id": "d14",
+        "question": "What is the maximum concurrency on a for_each step?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly states the maximum concurrency of 20.",
+        "latencyMs": 45715,
+        "retrievedSources": [
+          "data/docs/02-passing-data-between-steps.md",
+          "data/docs/05-rate-limits.md",
+          "data/docs/01-concepts.md",
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/03-retries-and-recovery.md"
+        ],
+        "answer": "Maximum concurrency on a `for_each` step is **20**.  \n[1]"
+      },
+      {
+        "id": "d15",
+        "question": "How do I configure single sign-on with Okta for Relay?",
+        "answerable": false,
+        "retrievalHit": null,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": true,
+        "judgeNote": "correctly declined",
+        "latencyMs": 47023,
+        "retrievedSources": [
+          "data/docs/01-concepts.md",
+          "data/docs/04-authentication-and-scopes.md"
+        ],
+        "answer": "The provided sources do not contain any information about configuring single sign‑on with Okta for Relay. No details on required fields, endpoints, or steps are available."
       }
     ]
   }
