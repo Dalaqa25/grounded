@@ -101,7 +101,15 @@ export async function* streamAnswer(
 
   let stream;
   try {
-    stream = await withGroqRetry(() => model.stream(messages));
+    // maxWaitMs 0: never sit out a rate limit on an interactive request.
+    // Groq's free tier allows 8,000 tokens a minute, which two overlapping
+    // visitors can exceed; waiting for the window turned a 2-second answer
+    // into a 43-second one in testing. Dropping straight to the smaller
+    // model is a far better trade for someone watching a cursor blink.
+    stream = await withGroqRetry(() => model.stream(messages), {
+      attempts: 2,
+      maxWaitMs: 0,
+    });
     onModel?.(modelName());
   } catch (error) {
     // Out of daily quota on the primary. A smaller model's answer beats an
