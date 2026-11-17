@@ -87,6 +87,37 @@ export function Masthead({ repoUrl }: { repoUrl: string }) {
               </Link>
             );
           })}
+
+          {/* Below md the secondary nav is hidden in the top row, so the same
+              destinations ride along in this scrollable strip. Without them a
+              phone visitor could not reach the evaluation page at all. */}
+          <span className="ml-auto flex shrink-0 items-center md:hidden">
+            <span className="mx-3 self-center text-ink-faint">·</span>
+            <Link
+              href="/how-it-works"
+              className={`shrink-0 py-2 pr-4 text-[0.9rem] ${
+                pathname === "/how-it-works" ? "text-accent" : "text-ink-muted"
+              }`}
+            >
+              Method
+            </Link>
+            <Link
+              href="/evals"
+              className={`shrink-0 py-2 pr-4 text-[0.9rem] ${
+                pathname === "/evals" ? "text-accent" : "text-ink-muted"
+              }`}
+            >
+              Evaluation
+            </Link>
+            <a
+              href={repoUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="shrink-0 py-2 text-[0.9rem] text-ink-muted"
+            >
+              Source
+            </a>
+          </span>
         </div>
       </div>
     </header>
