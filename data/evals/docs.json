@@ -1,0 +1,110 @@
+{
+  "workspace": "docs",
+  "cases": [
+    {
+      "id": "d01",
+      "question": "How do I retry a failed step without re-running the whole workflow?",
+      "expectedSources": ["data/docs/03-retries-and-recovery.md"],
+      "rubric": "Resume from the failed step: POST /v1/runs/{run_id}/resume with optional from_step. Earlier step outputs are reused, not re-executed.",
+      "answerable": true
+    },
+    {
+      "id": "d02",
+      "question": "What does error AUTH_403_SCOPE mean and how do I fix it?",
+      "expectedSources": ["data/docs/04-authentication-and-scopes.md"],
+      "rubric": "The connection authenticated but lacks a scope the step needs. Re-authorise the connection, then resume the run. If it persists, the provider account itself lacks the permission; check GET /v1/connections/{id}/scopes.",
+      "answerable": true
+    },
+    {
+      "id": "d03",
+      "question": "What are the rate limits and how should I handle a 429?",
+      "expectedSources": ["data/docs/05-rate-limits.md"],
+      "rubric": "Per-workspace limits: Starter 120/min, Growth 600/min, Enterprise 3,000/min. Honour Retry-After, add jitter. Inside a workflow 429 is retried automatically.",
+      "answerable": true
+    },
+    {
+      "id": "d04",
+      "question": "How do I pass data between two steps?",
+      "expectedSources": ["data/docs/02-passing-data-between-steps.md"],
+      "rubric": "Reference the earlier step by id in a {{ }} expression, e.g. {{ fetch_customer.body.email }}. Roots are trigger, step ids, vars, secrets and run.",
+      "answerable": true
+    },
+    {
+      "id": "d05",
+      "question": "How long can I resume a failed run for?",
+      "expectedSources": ["data/docs/03-retries-and-recovery.md"],
+      "rubric": "14 days after failure, while the run is within retention, and at most 10 resumes per run.",
+      "answerable": true
+    },
+    {
+      "id": "d06",
+      "question": "What is the default retry policy?",
+      "expectedSources": ["data/docs/03-retries-and-recovery.md"],
+      "rubric": "Three attempts, exponential backoff from 1 second with jitter, only for connection errors, timeouts, 429 and 5xx. Other 4xx are not retried.",
+      "answerable": true
+    },
+    {
+      "id": "d07",
+      "question": "Why did my scheduled workflow not run twice at 7am?",
+      "expectedSources": ["data/docs/06-webhooks-and-triggers.md"],
+      "rubric": "Overlapping runs are skipped by default and recorded as skipped; also a clock-back night fires once. allow_overlap: true changes the first behaviour.",
+      "answerable": true
+    },
+    {
+      "id": "d08",
+      "question": "How do I verify that a webhook really came from my system?",
+      "expectedSources": ["data/docs/06-webhooks-and-triggers.md"],
+      "rubric": "Add signature verification to the trigger: hmac-sha256 with a header and a secret. Failures are rejected with 401 and not recorded as runs.",
+      "answerable": true
+    },
+    {
+      "id": "d09",
+      "question": "What happens to runs that exhaust their retries?",
+      "expectedSources": ["data/docs/03-retries-and-recovery.md"],
+      "rubric": "They land in the workspace dead-letter queue for 14 days and can be resumed in bulk. Alert threshold defaults to 25.",
+      "answerable": true
+    },
+    {
+      "id": "d10",
+      "question": "What is the difference between resume and replay?",
+      "expectedSources": ["data/docs/03-retries-and-recovery.md"],
+      "rubric": "Resume continues from the failed step reusing earlier outputs, for environmental failures. Replay re-executes from the start with the original payload as a new run linked by replay_of, for fixed logic.",
+      "answerable": true
+    },
+    {
+      "id": "d11",
+      "question": "What idempotency key should I use when resuming?",
+      "expectedSources": ["data/docs/03-retries-and-recovery.md"],
+      "rubric": "A stable key such as {{ run.id }}-step_id. Explicitly not now(), because a key that changes per attempt defeats the purpose.",
+      "answerable": true
+    },
+    {
+      "id": "d12",
+      "question": "How long does a synchronous webhook caller wait before timing out?",
+      "expectedSources": ["data/docs/06-webhooks-and-triggers.md"],
+      "rubric": "30 seconds with respond: on_completion, after which the caller gets a 504 and the run continues in the background. Default behaviour is 202 Accepted immediately.",
+      "answerable": true
+    },
+    {
+      "id": "d13",
+      "question": "Can I run arbitrary JavaScript inside a {{ }} expression?",
+      "expectedSources": ["data/docs/02-passing-data-between-steps.md"],
+      "rubric": "No. Expressions are a restricted subset with no arbitrary evaluation. Use a transform step, sandboxed with a 2-second limit.",
+      "answerable": true
+    },
+    {
+      "id": "d14",
+      "question": "What is the maximum concurrency on a for_each step?",
+      "expectedSources": ["data/docs/02-passing-data-between-steps.md"],
+      "rubric": "Defaults to 5, caps at 20.",
+      "answerable": true
+    },
+    {
+      "id": "d15",
+      "question": "How do I configure single sign-on with Okta for Relay?",
+      "expectedSources": [],
+      "rubric": "Must refuse. The docs cover API keys and provider connections but nothing about SSO for Relay itself.",
+      "answerable": false
+    }
+  ]
+}

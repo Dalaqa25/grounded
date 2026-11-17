@@ -1,0 +1,118 @@
+{
+  "workspace": "talent",
+  "cases": [
+    {
+      "id": "t01",
+      "question": "Who has production experience with OAuth and third-party API integrations?",
+      "expectedSources": ["data/talent/01-amara-osei.md", "data/talent/11-nino-beridze.md"],
+      "rubric": "Names Amara Osei (OAuth 2.0 broker, 61 connectors) and Nino Beridze (30+ integrations, restricted Google scopes). May also mention Tomasz Wójcik's Shopify/BigCommerce OAuth work.",
+      "answerable": true
+    },
+    {
+      "id": "t02",
+      "question": "Has anyone actually shipped a RAG system to production?",
+      "expectedSources": ["data/talent/03-priya-raman.md"],
+      "rubric": "Names Priya Raman and her clinical reference assistant with hybrid retrieval over 180,000 chunks. May also mention Nino Beridze's retrieval assistant.",
+      "answerable": true
+    },
+    {
+      "id": "t03",
+      "question": "Which candidates are in a UTC+2 to UTC+4 timezone?",
+      "expectedSources": ["data/talent/11-nino-beridze.md"],
+      "rubric": "Identifies Nino Beridze in Tbilisi at UTC+4. Should not list UTC+1 candidates as matches.",
+      "answerable": true
+    },
+    {
+      "id": "t04",
+      "question": "Who can start immediately?",
+      "expectedSources": [
+        "data/talent/02-jonas-lindqvist.md",
+        "data/talent/06-daniel-ferreira.md",
+        "data/talent/11-nino-beridze.md"
+      ],
+      "rubric": "Lists Jonas Lindqvist, Daniel Ferreira and Nino Beridze. Nino is part-time at first.",
+      "answerable": true
+    },
+    {
+      "id": "t05",
+      "question": "Compare the two strongest candidates for a forward-deployed engineer role.",
+      "expectedSources": ["data/talent/02-jonas-lindqvist.md", "data/talent/11-nino-beridze.md"],
+      "rubric": "Compares Jonas Lindqvist (dedicated FDE, five enterprise engagements, travels) with Nino Beridze or Daniel Ferreira. States a trade-off rather than hedging.",
+      "answerable": true
+    },
+    {
+      "id": "t06",
+      "question": "Who has worked with n8n?",
+      "expectedSources": ["data/talent/06-daniel-ferreira.md", "data/talent/11-nino-beridze.md"],
+      "rubric": "Names Daniel Ferreira (reverse-engineered the execution model) and Nino Beridze.",
+      "answerable": true
+    },
+    {
+      "id": "t07",
+      "question": "Which candidates explicitly do not want a customer-facing role?",
+      "expectedSources": ["data/talent/01-amara-osei.md"],
+      "rubric": "Names Amara Osei, who capped customer time at about 20%.",
+      "answerable": true
+    },
+    {
+      "id": "t08",
+      "question": "What is the cheapest candidate with real LLM production experience?",
+      "expectedSources": ["data/talent/06-daniel-ferreira.md", "data/talent/11-nino-beridze.md"],
+      "rubric": "Should weigh Daniel Ferreira at EUR 3,900 against Nino Beridze at USD 4,300, and note Daniel's LLM work is automation rather than RAG.",
+      "answerable": true
+    },
+    {
+      "id": "t09",
+      "question": "Who needs visa sponsorship?",
+      "expectedSources": ["data/talent/03-priya-raman.md"],
+      "rubric": "Names Priya Raman, who would need sponsorship for EU on-site work but is happy remote.",
+      "answerable": true
+    },
+    {
+      "id": "t10",
+      "question": "Which candidates have built an evaluation suite for an AI system?",
+      "expectedSources": [
+        "data/talent/02-jonas-lindqvist.md",
+        "data/talent/03-priya-raman.md",
+        "data/talent/11-nino-beridze.md"
+      ],
+      "rubric": "Names Jonas Lindqvist, Priya Raman and Nino Beridze with their specific eval work.",
+      "answerable": true
+    },
+    {
+      "id": "t11",
+      "question": "Who is only looking for permanent employment rather than contract?",
+      "expectedSources": ["data/talent/09-hannah-weber.md"],
+      "rubric": "Names Hannah Weber and notes she was firm about it.",
+      "answerable": true
+    },
+    {
+      "id": "t12",
+      "question": "Which candidate would struggle with European working hours?",
+      "expectedSources": ["data/talent/10-rafael-santos.md"],
+      "rubric": "Names Rafael Santos in São Paulo at UTC-3, offering at most four hours of overlap from 13:00 CET.",
+      "answerable": true
+    },
+    {
+      "id": "t13",
+      "question": "Who has public speaking and developer community experience?",
+      "expectedSources": ["data/talent/07-mei-tanaka.md"],
+      "rubric": "Names Mei Tanaka: eight conferences a year, a Discord of 11,000 developers.",
+      "answerable": true
+    },
+    {
+      "id": "t14",
+      "question": "Which candidates have never worked with LLMs?",
+      "expectedSources": ["data/talent/01-amara-osei.md", "data/talent/08-ousmane-diallo.md"],
+      "rubric": "Names Amara Osei and Ousmane Diallo. May note Tomasz Wójcik has only a side project.",
+      "answerable": true
+    },
+    {
+      "id": "t15",
+      "question": "Which candidate has a security clearance?",
+      "expectedSources": [],
+      "rubric": "Must refuse. No profile mentions a security clearance, so the answer has to say the corpus does not cover it rather than guess.",
+      "answerable": false
+    }
+  ]
+}

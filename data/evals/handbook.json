@@ -1,0 +1,110 @@
+{
+  "workspace": "handbook",
+  "cases": [
+    {
+      "id": "h01",
+      "question": "How much remote-work equipment budget do I get, and how do I claim it?",
+      "expectedSources": ["data/handbook/01-remote-work-and-equipment.md"],
+      "rubric": "EUR 2,000 in the first year, EUR 800 a year after, no rollover. Claim in Expensify under Home Office within 60 days; manager approves; over EUR 600 also needs Finance.",
+      "answerable": true
+    },
+    {
+      "id": "h02",
+      "question": "What is the process for taking parental leave?",
+      "expectedSources": ["data/handbook/02-time-off-and-leave.md"],
+      "rubric": "20 weeks full pay birthing, 12 weeks non-birthing or adoptive, splittable into three blocks within 18 months. Eight weeks notice where possible, handover doc, phased return at 60% hours on full pay.",
+      "answerable": true
+    },
+    {
+      "id": "h03",
+      "question": "Can I use ChatGPT on customer code?",
+      "expectedSources": ["data/handbook/04-ai-tools-policy.md"],
+      "rubric": "No. ChatGPT and the OpenAI API are approved for internal repositories only. Customer code may only go to tools with a zero-retention agreement, which today means Claude Code and the Anthropic API.",
+      "answerable": true
+    },
+    {
+      "id": "h04",
+      "question": "Who approves a production deploy on a Friday?",
+      "expectedSources": ["data/handbook/03-engineering-practice.md"],
+      "rubric": "After 14:00 UTC on Friday, sign-off from the on-call engineer and the engineering manager who owns the service. Hotfixes for active incidents are exempt.",
+      "answerable": true
+    },
+    {
+      "id": "h05",
+      "question": "How many days of annual leave do I get and can I carry them over?",
+      "expectedSources": ["data/handbook/02-time-off-and-leave.md"],
+      "rubric": "30 days excluding public holidays; up to 10 days carry over and must be used by 31 March.",
+      "answerable": true
+    },
+    {
+      "id": "h06",
+      "question": "How many reviewers does a change to the billing service need?",
+      "expectedSources": ["data/handbook/03-engineering-practice.md"],
+      "rubric": "Two approvals, one from the owning team, because billing is in the sensitive set alongside authentication and customer data.",
+      "answerable": true
+    },
+    {
+      "id": "h07",
+      "question": "What is the on-call compensation?",
+      "expectedSources": ["data/handbook/03-engineering-practice.md"],
+      "rubric": "EUR 350 a week plus EUR 90 per interrupted night. No project work expected while primary.",
+      "answerable": true
+    },
+    {
+      "id": "h08",
+      "question": "Do I need a doctor's note when I am sick?",
+      "expectedSources": ["data/handbook/02-time-off-and-leave.md"],
+      "rubric": "Not for the first five consecutive days. Beyond that local law applies and People advise.",
+      "answerable": true
+    },
+    {
+      "id": "h09",
+      "question": "What is the hotel budget for a trip to London?",
+      "expectedSources": ["data/handbook/05-expenses-and-travel.md"],
+      "rubric": "EUR 260 a night in London, against EUR 180 for most cities.",
+      "answerable": true
+    },
+    {
+      "id": "h10",
+      "question": "How do I get temporary access to production data?",
+      "expectedSources": ["data/handbook/06-security-and-access.md"],
+      "rubric": "Request through the #access workflow, which grants eight hours and logs the reason. Standing access is limited to the on-call engineer and the three platform team members.",
+      "answerable": true
+    },
+    {
+      "id": "h11",
+      "question": "Can I expense a co-working desk?",
+      "expectedSources": ["data/handbook/01-remote-work-and-equipment.md"],
+      "rubric": "Yes, up to EUR 250 a month, submitted monthly under Co-working, no pre-approval needed.",
+      "answerable": true
+    },
+    {
+      "id": "h12",
+      "question": "Does my learning budget cover conference travel?",
+      "expectedSources": ["data/handbook/05-expenses-and-travel.md"],
+      "rubric": "Yes, conference travel comes out of the EUR 1,200 learning budget rather than the travel budget. Plus up to five working days. No rollover.",
+      "answerable": true
+    },
+    {
+      "id": "h13",
+      "question": "Can an AI agent open pull requests on its own?",
+      "expectedSources": ["data/handbook/04-ai-tools-policy.md"],
+      "rubric": "No. Agents must never commit, push or open pull requests unattended on a production repository, and the author is responsible for generated code.",
+      "answerable": true
+    },
+    {
+      "id": "h14",
+      "question": "I think I leaked an API key. What should I do?",
+      "expectedSources": ["data/handbook/06-security-and-access.md"],
+      "rubric": "Report in #security-incident immediately; out of hours page security on-call via PagerDuty. No penalty for reporting fast.",
+      "answerable": true
+    },
+    {
+      "id": "h15",
+      "question": "What is the company's policy on stock options and vesting?",
+      "expectedSources": [],
+      "rubric": "Must refuse. Nothing in the handbook covers equity or vesting, so the answer must say the corpus does not cover it.",
+      "answerable": false
+    }
+  ]
+}
