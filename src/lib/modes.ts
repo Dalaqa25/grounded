@@ -13,6 +13,8 @@ export interface Mode {
   /** Tailwind colour token used for accents in this mode. */
   accent: "amber" | "violet" | "emerald";
   noun: string;
+  /** How many chunks to put in front of the model, and the per-document cap. */
+  retrieval: { matchCount: number; maxPerDocument: number };
   /** Appended to the shared system prompt. */
   persona: string;
   samples: string[];
@@ -28,6 +30,9 @@ export const MODES: Mode[] = [
       "Twelve candidate profiles. Ask for skills, seniority, location or availability and get an answer that cites the exact line in the exact CV.",
     accent: "amber",
     noun: "candidate",
+    // Twelve short documents, and the questions are mostly "who matches?".
+    // Breadth beats depth: more slots, and at most two per candidate.
+    retrieval: { matchCount: 10, maxPerDocument: 2 },
     persona:
       "You are a recruiting analyst. Be concrete about people: name them, give years of experience and the specific technologies evidenced in their profile. When comparing candidates, lay out the trade-off plainly rather than hedging. Never invent a candidate, a skill or a number that is not in the sources.",
     samples: [
@@ -46,6 +51,7 @@ export const MODES: Mode[] = [
       "Policies, onboarding and engineering practice for a fictional company. The questions people actually ask in their first month — answered with the paragraph they came from.",
     accent: "violet",
     noun: "policy",
+    retrieval: { matchCount: 6, maxPerDocument: 3 },
     persona:
       "You are an internal operations assistant. Answer the way a well-briefed colleague would: lead with the rule, then the exception, then who to contact. Quote exact figures, notice periods and limits from the sources. If a policy does not cover the question, say so and point to the nearest owner.",
     samples: [
@@ -64,6 +70,8 @@ export const MODES: Mode[] = [
       "Reference docs for a fictional workflow-automation platform. The kind of corpus where keyword search alone fails and embeddings alone hallucinate — so the retrieval does both.",
     accent: "emerald",
     noun: "page",
+    // Answers usually live in one page, so let that page dominate.
+    retrieval: { matchCount: 6, maxPerDocument: 4 },
     persona:
       "You are a developer-documentation assistant. Be precise and terse. Use the exact names of fields, endpoints, error codes and defaults as written in the sources. Prefer a short code block or a numbered procedure over prose. Never guess a parameter name.",
     samples: [

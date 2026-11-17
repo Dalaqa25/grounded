@@ -122,7 +122,8 @@ async function runCase(
     workspace,
     query: testCase.question,
     mode: retrievalMode,
-    matchCount: 6,
+    matchCount: mode.retrieval.matchCount,
+    maxPerDocument: mode.retrieval.maxPerDocument,
   });
 
   const retrievedSources = [

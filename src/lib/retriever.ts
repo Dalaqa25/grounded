@@ -23,6 +23,50 @@ export interface RetrieveOptions {
   mode?: RetrievalMode;
   matchCount?: number;
   candidateCount?: number;
+  /** Chunks any single document may occupy in the final set. */
+  maxPerDocument?: number;
+}
+
+/**
+ * Caps how much of the context window one document can occupy.
+ *
+ * This exists because of a measured failure, not a hunch. Asked "who has
+ * production experience with OAuth?", pure score ordering returned three
+ * chunks of one candidate and three of another: six slots, two people, out of
+ * twelve profiles. The model then named two candidates and was marked wrong
+ * for missing the third — but the third was never in its context. Relevance
+ * ordering is right for "what does this error mean" and wrong for "list
+ * everyone who matches", and a per-document cap buys breadth for the second
+ * without hurting the first.
+ *
+ * Chunks dropped by the cap are not discarded; they top the list back up if
+ * there were not enough distinct documents to fill it.
+ */
+function diversify<T extends { document_id: string }>(
+  rows: T[],
+  limit: number,
+  maxPerDocument: number,
+): T[] {
+  const taken = new Map<string, number>();
+  const picked: T[] = [];
+  const overflow: T[] = [];
+
+  for (const row of rows) {
+    const used = taken.get(row.document_id) ?? 0;
+    if (used < maxPerDocument) {
+      picked.push(row);
+      taken.set(row.document_id, used + 1);
+    } else {
+      overflow.push(row);
+    }
+  }
+
+  for (const row of overflow) {
+    if (picked.length >= limit) break;
+    picked.push(row);
+  }
+
+  return picked.slice(0, limit);
 }
 
 /**
@@ -37,6 +81,7 @@ export async function retrieve(opts: RetrieveOptions): Promise<RetrievalTrace> {
   const mode = opts.mode ?? "hybrid";
   const matchCount = opts.matchCount ?? 6;
   const candidateCount = opts.candidateCount ?? 40;
+  const maxPerDocument = opts.maxPerDocument ?? 2;
   const searchQuery = (opts.searchQuery ?? opts.query).trim();
 
   const embedStart = Date.now();
@@ -51,7 +96,7 @@ export async function retrieve(opts: RetrieveOptions): Promise<RetrievalTrace> {
     query_text: searchQuery,
     query_embedding: vector as unknown as string,
     ws: opts.workspace,
-    match_count: mode === "hybrid" ? matchCount : candidateCount,
+    match_count: mode === "hybrid" ? matchCount * 3 : candidateCount,
     candidate_count: candidateCount,
     rrf_k: 50,
   });
@@ -69,14 +114,14 @@ export async function retrieve(opts: RetrieveOptions): Promise<RetrievalTrace> {
   if (mode === "vector") {
     rows = rows
       .filter((r) => r.vector_rank != null)
-      .sort((a, b) => (a.vector_rank ?? 0) - (b.vector_rank ?? 0))
-      .slice(0, matchCount);
+      .sort((a, b) => (a.vector_rank ?? 0) - (b.vector_rank ?? 0));
   } else if (mode === "keyword") {
     rows = rows
       .filter((r) => r.keyword_rank != null)
-      .sort((a, b) => (a.keyword_rank ?? 0) - (b.keyword_rank ?? 0))
-      .slice(0, matchCount);
+      .sort((a, b) => (a.keyword_rank ?? 0) - (b.keyword_rank ?? 0));
   }
+
+  rows = diversify(rows, matchCount, maxPerDocument);
 
   const chunks: RetrievedChunk[] = rows.map((row, i) => ({
     id: row.id,
