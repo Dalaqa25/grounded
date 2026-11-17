@@ -83,7 +83,16 @@ export async function POST(request: NextRequest) {
         // 4. Generate.
         send({ type: "status", stage: "generating" });
         const answerStart = Date.now();
-        for await (const token of streamAnswer(mode, question, trace.chunks, history)) {
+        let answeredBy = modelName();
+        for await (const token of streamAnswer(
+          mode,
+          question,
+          trace.chunks,
+          history,
+          (name) => {
+            answeredBy = name;
+          },
+        )) {
           send({ type: "token", value: token });
         }
 
@@ -91,7 +100,7 @@ export async function POST(request: NextRequest) {
           type: "done",
           answerMs: Date.now() - answerStart,
           totalMs: Date.now() - totalStart,
-          model: modelName(),
+          model: answeredBy,
         });
       } catch (error) {
         send({

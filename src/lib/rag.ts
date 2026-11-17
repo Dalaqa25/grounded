@@ -1,5 +1,12 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { chatModel, withGroqRetry } from "./llm";
+import {
+  chatModel,
+  fallbackModel,
+  fallbackModelName,
+  isRateLimited,
+  modelName,
+  withGroqRetry,
+} from "./llm";
 import type { Mode } from "./modes";
 import type { ChatTurn, RetrievedChunk } from "./types";
 
@@ -77,6 +84,8 @@ export async function* streamAnswer(
   question: string,
   chunks: RetrievedChunk[],
   history: ChatTurn[],
+  /** Called once with the model that actually produced the answer. */
+  onModel?: (name: string) => void,
 ): AsyncGenerator<string> {
   const model = chatModel({ temperature: 0.1, maxTokens: 900 });
 
@@ -90,7 +99,18 @@ export async function* streamAnswer(
     new HumanMessage(question),
   ];
 
-  const stream = await withGroqRetry(() => model.stream(messages));
+  let stream;
+  try {
+    stream = await withGroqRetry(() => model.stream(messages));
+    onModel?.(modelName());
+  } catch (error) {
+    // Out of daily quota on the primary. A smaller model's answer beats an
+    // error page on a public demo, and the UI reports which one replied.
+    if (!isRateLimited(error)) throw error;
+    stream = await withGroqRetry(() => fallbackModel().stream(messages));
+    onModel?.(fallbackModelName());
+  }
+
   for await (const part of stream) {
     const text = typeof part.content === "string" ? part.content : "";
     if (text) yield text;

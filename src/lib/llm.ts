@@ -43,8 +43,39 @@ export function judgeModel() {
   });
 }
 
+/**
+ * The smaller model, used when the primary is rate-limited.
+ *
+ * Groq's free tier caps tokens per day per model. A public demo that dies at
+ * the cap is a demo that is broken whenever someone actually tries it, so a
+ * degraded answer from a smaller model beats an error page. The UI reports
+ * which model answered, so the fallback is visible rather than quietly
+ * pretending nothing happened.
+ */
+export function fallbackModel(opts: { temperature?: number; maxTokens?: number } = {}) {
+  const { GROQ_API_KEY, GROQ_JUDGE_MODEL } = env();
+  return new ChatGroq({
+    apiKey: GROQ_API_KEY,
+    model: GROQ_JUDGE_MODEL,
+    temperature: opts.temperature ?? 0.1,
+    maxTokens: opts.maxTokens ?? 900,
+    reasoningEffort: "low",
+    maxRetries: 0,
+  });
+}
+
 export function modelName(): string {
   return env().GROQ_MODEL;
+}
+
+export function fallbackModelName(): string {
+  return env().GROQ_JUDGE_MODEL;
+}
+
+/** True when the provider refused because a quota is exhausted. */
+export function isRateLimited(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /429|rate.?limit|quota/i.test(message);
 }
 
 export function judgeModelName(): string {
@@ -79,7 +110,16 @@ function isTransient(error: unknown): boolean {
  * server's suggested delay is the difference between an eval run that
  * completes and one that dies a third of the way through.
  */
-export async function withGroqRetry<T>(fn: () => Promise<T>, attempts = 6): Promise<T> {
+export async function withGroqRetry<T>(
+  fn: () => Promise<T>,
+  opts: { attempts?: number; maxWaitMs?: number } = {},
+): Promise<T> {
+  const attempts = opts.attempts ?? 6;
+  // Per-minute limits suggest a wait of seconds and are worth sitting out.
+  // A per-day limit suggests minutes — nobody is holding a browser tab open
+  // for that, so it is thrown instead and the caller can fall back.
+  const maxWaitMs = opts.maxWaitMs ?? 30_000;
+
   let lastError: unknown;
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
@@ -90,6 +130,7 @@ export async function withGroqRetry<T>(fn: () => Promise<T>, attempts = 6): Prom
 
       const throttled = rateLimitDelayMs(error);
       if (throttled !== null) {
+        if (throttled > maxWaitMs) throw error;
         await new Promise((r) => setTimeout(r, throttled));
         continue;
       }
