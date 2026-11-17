@@ -28,8 +28,10 @@ export function Apparatus({
   busy: boolean;
 }) {
   if (!trace) {
+    // Before the first question there is nothing to show, and on a phone an
+    // empty panel under the sample questions is just noise.
     return (
-      <div className="px-6 pt-10">
+      <div className="hidden px-6 pt-10 lg:block">
         <p className="label">Sources</p>
         <div className="mt-3 border-t border-rule pt-3">
           <p className="max-w-[26ch] text-[0.84rem] italic leading-relaxed text-ink-faint">
@@ -45,7 +47,7 @@ export function Apparatus({
   const maxScore = Math.max(...trace.chunks.map((c) => c.score), 1e-9);
 
   return (
-    <div className="px-6 pt-10">
+    <div className="px-0 pb-28 pt-8 lg:px-6 lg:pb-0 lg:pt-10">
       <div className="flex items-baseline justify-between gap-3">
         <p className="label">Sources</p>
         <p className="figure-num">{STRATEGY_LABEL[trace.mode] ?? trace.mode}</p>

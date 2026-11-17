@@ -154,7 +154,7 @@ export function Workspace({
     <div className="mx-auto w-full max-w-[86rem] px-6">
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {/* ------------------------------------------------- the document -- */}
-        <main className="min-w-0 pb-40 pt-10 lg:border-r lg:border-rule lg:pr-10">
+        <main className="min-w-0 pb-10 pt-10 lg:border-r lg:border-rule lg:pb-40 lg:pr-10">
           <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-rule pb-3">
             <div>
               <h1 className="text-[1.5rem] leading-tight tracking-[-0.012em]">
@@ -203,8 +203,10 @@ export function Workspace({
         </main>
 
         {/* ----------------------------------------------- the apparatus -- */}
-        <aside className="hidden lg:block">
-          <div className="sticky top-[7.4rem] max-h-[calc(100dvh-9rem)] overflow-y-auto pb-10">
+        {/* On a phone this stacks under the answer instead of disappearing.
+            Hiding it would make every footnote tap a dead end. */}
+        <aside className={lastTrace ? "border-t border-rule lg:border-t-0" : ""}>
+          <div className="lg:sticky lg:top-[7.4rem] lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto lg:pb-10">
             <Apparatus
               trace={lastTrace}
               activeCitation={activeCitation}
