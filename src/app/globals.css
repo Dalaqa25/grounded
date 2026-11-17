@@ -193,10 +193,15 @@ body {
 .prose-answer > * + * {
   margin-top: 0.9em;
 }
-/* Prose keeps a readable measure; a table is data and may use the full
-   column, because a comparison clipped at 62ch is unreadable. */
-.prose-answer > *:not(table) {
+/* Prose keeps a readable measure. Tables and code are data, not prose: a
+   comparison or a request body clipped at 62ch is unreadable, so they get the
+   full column. A list containing a code block is widened with it. */
+.prose-answer > *:not(table):not(pre) {
   max-width: 62ch;
+}
+.prose-answer > ol:has(pre),
+.prose-answer > ul:has(pre) {
+  max-width: 100%;
 }
 .prose-answer strong {
   font-weight: 600;
