@@ -56,7 +56,7 @@ export function buildSystemPrompt(mode: Mode, chunks: RetrievedChunk[]): string 
     "2. Use only what the sources state. Do not add background knowledge, do not estimate, do not fill gaps.",
     "3. If the sources do not answer the question, say exactly what is missing and stop. Do not apologise at length.",
     "4. Be complete. Give every figure, limit, deadline, exception and follow-up step the sources state for this question. An answer that is correct but omits a stated limit or caveat is wrong.",
-    "5. Answer every part of a multi-part question, and when asked to compare, name the trade-off rather than listing both sides neutrally.",
+    "5. Answer every part of a multi-part question, and when asked to compare, name the trade-off rather than listing both sides neutrally. Do not add sections the question did not ask for, such as a list of everyone who does not match.",
     "6. Prefer short paragraphs or bullets. Use a table only for a genuine comparison, never more than three columns, and keep cells to a few words. No preamble like 'Based on the sources'. Start with the answer.",
     "7. If sources disagree, show both and cite each.",
     "",
@@ -86,7 +86,9 @@ export async function* streamAnswer(
    */
   opts: { chain?: boolean } = {},
 ): AsyncGenerator<string> {
-  const model = chatModel({ temperature: 0.1, maxTokens: 900 });
+  // 900 truncated list answers mid-sentence in testing; these corpora
+  // routinely need eight or nine cited bullets.
+  const model = chatModel({ temperature: 0.1, maxTokens: 1500 });
 
   const messages = [
     new SystemMessage(buildSystemPrompt(mode, chunks)),
@@ -107,7 +109,7 @@ export async function* streamAnswer(
   let lastError: unknown;
 
   for (const [index, name] of chain.entries()) {
-    const candidate = index === 0 ? model : modelAt(name, { maxTokens: 900 });
+    const candidate = index === 0 ? model : modelAt(name, { maxTokens: 1500 });
     try {
       stream = await withGroqRetry(() => candidate.stream(messages), {
         attempts: opts.chain === false ? 6 : 2,

@@ -36,9 +36,10 @@ export function Workspace({
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
-  const endRef = useRef<HTMLDivElement>(null);
+  const lastQuestionRef = useRef<HTMLLIElement>(null);
 
   const lastTrace = [...messages].reverse().find((m) => m.trace)?.trace ?? null;
+  const lastUserId = [...messages].reverse().find((m) => m.role === "user")?.id;
 
   useEffect(() => {
     setMessages([]);
@@ -46,8 +47,12 @@ export function Workspace({
     abortRef.current?.abort();
   }, [mode.id]);
 
+  // Bring the new question to the top of the reading area, the way turning a
+  // page works. Scrolling to the bottom instead left it tucked behind the
+  // fixed ask bar with the answer growing out of sight below it.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (!messages.length) return;
+    lastQuestionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [messages.length]);
 
   const send = useCallback(
@@ -180,7 +185,15 @@ export function Workspace({
             <ol className="mt-8 flex flex-col gap-10">
               {messages.map((message) =>
                 message.role === "user" ? (
-                  <li key={message.id} className="animate-rise">
+                  <li
+                    key={message.id}
+                    ref={
+                      message.id === lastUserId
+                        ? (lastQuestionRef as React.RefObject<HTMLLIElement>)
+                        : undefined
+                    }
+                    className="animate-rise scroll-mt-[7.5rem]"
+                  >
                     <p className="label mb-1.5">Question</p>
                     <p className="max-w-[58ch] text-[1.18rem] leading-snug tracking-[-0.008em]">
                       {message.content}
@@ -199,7 +212,6 @@ export function Workspace({
             </ol>
           )}
 
-          <div ref={endRef} />
         </main>
 
         {/* ----------------------------------------------- the apparatus -- */}
