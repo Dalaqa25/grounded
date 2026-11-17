@@ -123,6 +123,12 @@ export async function retrieve(opts: RetrieveOptions): Promise<RetrievalTrace> {
 
   rows = diversify(rows, matchCount, maxPerDocument);
 
+  // Keyword-only sends a zero vector, so the semantic CTE still runs and
+  // produces ranks against nothing. Reporting those would be a lie: the panel
+  // said "semantic + keyword · vec 3" for a search that never embedded
+  // anything. They are dropped here rather than displayed.
+  const semanticIsReal = mode !== "keyword";
+
   const chunks: RetrievedChunk[] = rows.map((row, i) => ({
     id: row.id,
     documentId: row.document_id,
@@ -130,8 +136,8 @@ export async function retrieve(opts: RetrieveOptions): Promise<RetrievalTrace> {
     sourcePath: row.source_path,
     chunkIndex: row.chunk_index,
     content: row.content,
-    similarity: row.similarity ?? 0,
-    vectorRank: row.vector_rank ?? null,
+    similarity: semanticIsReal ? (row.similarity ?? 0) : 0,
+    vectorRank: semanticIsReal ? (row.vector_rank ?? null) : null,
     keywordRank: row.keyword_rank ?? null,
     score: row.score,
     citation: i + 1,
@@ -176,5 +182,14 @@ export const RELEVANCE_FLOOR = 0.62;
 export function hasUsableContext(trace: RetrievalTrace): boolean {
   const best = trace.chunks[0];
   if (!best) return false;
+
+  // Keyword-only computes no embedding, so there is no similarity to compare
+  // against. Applying the floor there made the comparison mode refuse every
+  // question, which looked like a broken toggle rather than the honest point
+  // it is meant to make: the same question, answered from worse passages.
+  // A Postgres full-text match is itself evidence of some relevance, so the
+  // gate becomes "did anything match at all" and the model decides the rest.
+  if (trace.mode === "keyword") return true;
+
   return best.similarity >= RELEVANCE_FLOOR;
 }
