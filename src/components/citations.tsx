@@ -2,12 +2,24 @@
 
 import React from "react";
 
+const SUPERSCRIPT = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"];
+
+function toSuperscript(n: number): string {
+  return String(n)
+    .split("")
+    .map((d) => SUPERSCRIPT[Number(d)])
+    .join("");
+}
+
 /**
- * The model writes citations as [1] or [2][3] in plain text. Rather than ask it
- * for structured output — which costs tokens and breaks mid-stream — we parse
- * the markers out at render time and turn them into controls.
+ * A footnote marker, not a chip.
+ *
+ * The whole interface argues that an answer is a cited document, so the
+ * citation should look like one: a raised numeral tight against the word it
+ * follows, in the accent ink. It is still a button — pressing it opens the
+ * passage in the apparatus — but at rest it reads as typography.
  */
-export function CitationChip({
+export function FootnoteMarker({
   n,
   active,
   onSelect,
@@ -20,22 +32,21 @@ export function CitationChip({
     <button
       type="button"
       onClick={() => onSelect(n)}
-      title={`Jump to source ${n}`}
-      className={`mx-[0.1em] inline-flex h-[1.15em] min-w-[1.15em] translate-y-[-0.12em] items-center justify-center rounded-[0.28em] px-[0.3em] align-middle font-mono text-[0.68em] font-medium transition
-        ${
-          active
-            ? "bg-indigo-400/90 text-ink-950 ring-1 ring-indigo-300"
-            : "bg-white/8 text-ink-300 ring-1 ring-white/10 hover:bg-white/15 hover:text-white"
-        }`}
+      title={`Source ${n}`}
+      aria-label={`Open source ${n}`}
+      className={`cursor-pointer align-baseline font-medium transition-colors ${
+        active ? "underline decoration-2 underline-offset-2" : "hover:opacity-70"
+      }`}
+      style={{ color: "var(--accent)" }}
     >
-      {n}
+      {toSuperscript(n)}
     </button>
   );
 }
 
 /**
- * Walks rendered markdown children and swaps [n] markers for chips, leaving
- * every other node untouched.
+ * Walks rendered markdown children and swaps [n] markers for footnote
+ * numerals, leaving every other node untouched.
  */
 export function withCitations(
   children: React.ReactNode,
@@ -49,12 +60,11 @@ export function withCitations(
       return parts.map((part, j) => {
         const match = /^\[(\d{1,2})\]$/.exec(part);
         if (!match) return <React.Fragment key={j}>{part}</React.Fragment>;
-        const n = Number(match[1]);
         return (
-          <CitationChip
+          <FootnoteMarker
             key={`${i}-${j}`}
-            n={n}
-            active={active === n}
+            n={Number(match[1])}
+            active={active === Number(match[1])}
             onSelect={onSelect}
           />
         );

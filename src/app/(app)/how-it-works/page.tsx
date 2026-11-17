@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { BookOpen } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -47,23 +46,21 @@ const STAGES = [
   {
     n: "07",
     title: "Show the work",
-    body: "The retrieval panel shows every chunk the model received, its fused score, and whether it came from semantic search, keyword search or both.",
+    body: "The source apparatus in the margin lists every passage the model received, its fused score, and whether it came from semantic search, keyword search or both.",
     why: "When an answer is wrong, the useful question is whether retrieval missed or generation drifted. Without the trace you are guessing.",
   },
 ];
 
 export default function HowItWorksPage() {
   return (
-    <main className="min-w-0 flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-3xl px-6 py-10">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-indigo-400/12 ring-1 ring-indigo-400/25">
-          <BookOpen className="size-4 text-indigo-300" strokeWidth={2} />
-        </div>
+    <main className="mx-auto max-w-[72rem] px-6 pb-24 pt-10">
+      <div className="max-w-[68ch]">
+        <p className="label">Method</p>
 
-        <h1 className="mt-4 text-[26px] font-semibold tracking-tight text-white">
+        <h1 className="mt-2 text-[2rem] leading-[1.12] tracking-[-0.018em]">
           How it works
         </h1>
-        <p className="mt-2 max-w-[62ch] text-[14px] leading-relaxed text-ink-300">
+        <p className="mt-4 max-w-[64ch] text-[1.05rem] leading-relaxed text-ink-muted">
           One engine, three corpora. Everything below runs on free tiers:
           Postgres with pgvector on Supabase, Llama on Groq for generation, and
           Gemini for embeddings.
@@ -71,18 +68,16 @@ export default function HowItWorksPage() {
 
         <Pipeline />
 
-        <ol className="mt-10 flex flex-col gap-7">
+        <ol className="mt-12 border-t border-rule">
           {STAGES.map((stage) => (
-            <li key={stage.n} className="flex gap-4">
-              <span className="mt-0.5 font-mono text-[12px] text-ink-600">{stage.n}</span>
+            <li key={stage.n} className="flex gap-5 border-b border-rule py-6">
+              <span className="figure-num shrink-0 pt-1.5">{stage.n}</span>
               <div className="min-w-0">
-                <h2 className="text-[15px] font-semibold tracking-tight text-white">
+                <h2 className="text-[1.2rem] leading-snug tracking-[-0.01em]">
                   {stage.title}
                 </h2>
-                <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-200">
-                  {stage.body}
-                </p>
-                <p className="mt-2 border-l-2 border-white/10 pl-3 text-[13px] leading-relaxed text-ink-400">
+                <p className="mt-2 text-[1rem] leading-relaxed">{stage.body}</p>
+                <p className="mt-3 border-l-2 border-rule-strong pl-4 text-[0.95rem] italic leading-relaxed text-ink-muted">
                   {stage.why}
                 </p>
               </div>
@@ -90,13 +85,11 @@ export default function HowItWorksPage() {
           ))}
         </ol>
 
-        <section className="mt-12">
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-ink-300">
-            Stack
-          </h2>
-          <div className="panel mt-3 overflow-hidden rounded-xl">
-            <table className="w-full text-[13px]">
-              <tbody className="divide-y divide-white/5">
+        <section className="mt-14">
+          <p className="label border-b border-rule pb-2">Stack</p>
+          <div className="mt-1">
+            <table className="w-full text-[0.95rem]">
+              <tbody>
                 {[
                   ["Framework", "Next.js 15 · React 19 · TypeScript"],
                   ["Orchestration", "LangChain v1 (core, Groq, Google GenAI, text splitters)"],
@@ -106,9 +99,9 @@ export default function HowItWorksPage() {
                   ["Embeddings", "Gemini gemini-embedding-2 · 768 dimensions · separate document and query encoders"],
                   ["Evaluation", "45 fixed cases, model-graded against per-question rubrics"],
                 ].map(([k, v]) => (
-                  <tr key={k}>
-                    <td className="w-40 px-4 py-2.5 align-top text-ink-400">{k}</td>
-                    <td className="px-4 py-2.5 text-ink-100">{v}</td>
+                  <tr key={k} className="border-b border-rule">
+                    <td className="label w-44 py-2.5 pr-4 align-top">{k}</td>
+                    <td className="py-2.5 text-ink-muted">{v}</td>
                   </tr>
                 ))}
               </tbody>
@@ -116,11 +109,9 @@ export default function HowItWorksPage() {
           </div>
         </section>
 
-        <section className="mt-10">
-          <h2 className="text-[13px] font-semibold uppercase tracking-[0.14em] text-ink-300">
-            What it does not do
-          </h2>
-          <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-[13.5px] leading-relaxed text-ink-300 marker:text-ink-600">
+        <section className="mt-14">
+          <p className="label border-b border-rule pb-2">What it does not do</p>
+          <ul className="mt-4 flex list-disc flex-col gap-3 pl-5 text-[0.98rem] leading-relaxed text-ink-muted marker:text-ink-faint">
             <li>
               No reranker. A cross-encoder would likely add a few points of
               accuracy on the docs corpus, at the cost of latency and another
@@ -154,16 +145,16 @@ function Pipeline() {
   ];
 
   return (
-    <div className="panel mt-8 overflow-x-auto rounded-xl px-4 py-5">
+    <div className="mt-9 overflow-x-auto border-y border-rule py-5">
       <div className="flex min-w-[40rem] items-center gap-1.5">
         {nodes.map((node, i) => (
           <div key={node.label} className="flex flex-1 items-center gap-1.5">
-            <div className="flex-1 rounded-lg bg-white/4 px-3 py-2.5 text-center ring-1 ring-white/7">
-              <p className="text-[12.5px] font-medium text-ink-100">{node.label}</p>
-              <p className="mt-0.5 font-mono text-[10px] text-ink-500">{node.sub}</p>
+            <div className="flex-1 border border-rule px-2.5 py-2 text-center">
+              <p className="text-[0.85rem] leading-tight">{node.label}</p>
+              <p className="figure-num mt-0.5 text-[0.62rem]">{node.sub}</p>
             </div>
             {i < nodes.length - 1 && (
-              <svg viewBox="0 0 16 8" className="size-3 shrink-0 text-ink-600" aria-hidden>
+              <svg viewBox="0 0 16 8" className="size-3 shrink-0 text-ink-faint" aria-hidden>
                 <path
                   d="M0 4h13m0 0-3-3m3 3-3 3"
                   stroke="currentColor"

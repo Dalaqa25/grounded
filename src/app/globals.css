@@ -1,37 +1,94 @@
 @import "tailwindcss";
 
+/* ===========================================================================
+   Grounded — an archive, not a chat window.
+
+   The product's whole claim is that an answer can be traced to a source, so
+   the interface borrows from the one format that has solved this for four
+   hundred years: a printed page with numbered footnotes and a source
+   apparatus in the margin. Warm paper, a real text serif, hairline rules,
+   no cards and no shadows.
+   =========================================================================== */
+
 @theme {
-  --color-ink-950: #08090b;
-  --color-ink-900: #0b0d10;
-  --color-ink-850: #101317;
-  --color-ink-800: #14181d;
-  --color-ink-700: #1b2027;
-  --color-ink-600: #262c35;
-  --color-ink-500: #3a434f;
-  --color-ink-400: #5c6775;
-  --color-ink-300: #8b95a3;
-  --color-ink-200: #b9c1cc;
-  --color-ink-100: #e2e6ec;
+  --font-serif: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, monospace;
+  --color-paper: var(--paper);
+  --color-leaf: var(--leaf);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
 
-  --animate-rise: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-fade: fade 0.4s ease both;
-  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-rise: rise 0.4s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  --animate-fade: fade 0.45s ease both;
+  --animate-pulse-slow: pulse-slow 1.8s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------------- themes -- */
+
+:root,
+:root[data-theme="light"] {
+  --paper: #fbf9f5;
+  --leaf: #fffdf9;
+  --rule: #e3dbcd;
+  --rule-strong: #c7bca7;
+  --ink: #1c1917;
+  --ink-muted: #5d564d;
+  --ink-faint: #8d8477;
+  --accent: #8c2f1f;
+  --accent-soft: rgb(140 47 31 / 0.09);
+  --accent-ink: #fbf9f5;
+  color-scheme: light;
+}
+
+/* Warm dark, lit like a reading lamp — not the blue-black every AI app uses. */
+:root[data-theme="dark"] {
+  --paper: #15120e;
+  --leaf: #1c1814;
+  --rule: #332c23;
+  --rule-strong: #4d4335;
+  --ink: #ece4d7;
+  --ink-muted: #a89c8a;
+  --ink-faint: #7a6f60;
+  --accent: #e08a62;
+  --accent-soft: rgb(224 138 98 / 0.14);
+  --accent-ink: #15120e;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #15120e;
+    --leaf: #1c1814;
+    --rule: #332c23;
+    --rule-strong: #4d4335;
+    --ink: #ece4d7;
+    --ink-muted: #a89c8a;
+    --ink-faint: #7a6f60;
+    --accent: #e08a62;
+    --accent-soft: rgb(224 138 98 / 0.14);
+    --accent-ink: #15120e;
+    color-scheme: dark;
+  }
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-
 @keyframes fade {
   from {
     opacity: 0;
@@ -40,16 +97,17 @@
     opacity: 1;
   }
 }
-
-@keyframes shimmer {
+@keyframes pulse-slow {
   0%,
   100% {
-    opacity: 0.35;
+    opacity: 0.3;
   }
   50% {
     opacity: 1;
   }
 }
+
+/* ----------------------------------------------------------------- base -- */
 
 html,
 body {
@@ -57,85 +115,93 @@ body {
 }
 
 body {
-  background-color: var(--color-ink-950);
-  color: var(--color-ink-100);
-  font-family: var(--font-sans);
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-}
-
-/* A single faint light source at the top of the page, so the dark surface has
-   somewhere to come from instead of reading as flat black. */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(60rem 30rem at 50% -12rem, rgb(99 102 241 / 0.1), transparent 70%),
-    radial-gradient(40rem 24rem at 90% 0%, rgb(16 185 129 / 0.05), transparent 70%);
-  z-index: 0;
+  font-feature-settings: "kern" 1;
 }
 
 ::selection {
-  background: rgb(129 140 248 / 0.3);
+  background: var(--accent-soft);
 }
 
-/* Scrollbars: present, but not part of the composition. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-ink-600) transparent;
+  scrollbar-color: var(--rule-strong) transparent;
 }
 *::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 *::-webkit-scrollbar-thumb {
-  background-color: var(--color-ink-700);
-  border-radius: 9999px;
-  border: 3px solid transparent;
+  background-color: var(--rule);
+  border: 4px solid transparent;
   background-clip: content-box;
+  border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-ink-600);
+  background-color: var(--rule-strong);
 }
 
-@utility hairline {
-  border: 1px solid rgb(255 255 255 / 0.07);
+/* ------------------------------------------------------------ utilities -- */
+
+/** A letterspaced small-caps label, the way a printed page marks a section. */
+@utility label {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
-@utility panel {
-  background-color: rgb(16 19 23 / 0.72);
-  border: 1px solid rgb(255 255 255 / 0.07);
-  backdrop-filter: blur(12px);
+@utility figure-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
 }
 
-/* Markdown answer body ---------------------------------------------------- */
+/** Paper texture: a barely-there fibre grain, so the light theme is not a flat screen. */
+@utility grain {
+  position: relative;
+}
+@utility grain-layer {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------------------- answer prose -- */
 
 .prose-answer {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  color: var(--color-ink-100);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.68;
+  color: var(--ink);
+  font-optical-sizing: auto;
 }
 .prose-answer > * + * {
-  margin-top: 0.85em;
+  margin-top: 0.9em;
 }
 .prose-answer strong {
-  color: #fff;
   font-weight: 600;
-}
-.prose-answer em {
-  color: var(--color-ink-200);
 }
 .prose-answer ul,
 .prose-answer ol {
-  padding-left: 1.15rem;
+  padding-left: 1.3rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 .prose-answer ul {
   list-style: disc;
@@ -144,37 +210,38 @@ body::before {
   list-style: decimal;
 }
 .prose-answer li::marker {
-  color: var(--color-ink-400);
+  color: var(--ink-faint);
 }
 .prose-answer h1,
 .prose-answer h2,
 .prose-answer h3 {
+  font-family: var(--font-serif);
   font-weight: 600;
-  color: #fff;
-  font-size: 1rem;
-  letter-spacing: -0.01em;
+  font-size: 1.0625rem;
+  letter-spacing: -0.005em;
 }
 .prose-answer a {
-  color: #a5b4fc;
+  color: var(--accent);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 2.5px;
+  text-decoration-thickness: 1px;
 }
 .prose-answer code {
   font-family: var(--font-mono);
-  font-size: 0.84em;
-  background: rgb(255 255 255 / 0.06);
-  border: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: 0.3rem;
-  padding: 0.1em 0.35em;
+  font-size: 0.83em;
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 0.08em 0.3em;
 }
 .prose-answer pre {
-  background: var(--color-ink-900);
-  border: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: 0.6rem;
-  padding: 0.85rem 1rem;
+  background: var(--leaf);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--rule-strong);
+  padding: 0.9rem 1.05rem;
   overflow-x: auto;
-  font-size: 0.82rem;
-  line-height: 1.6;
+  font-size: 0.8rem;
+  line-height: 1.62;
 }
 .prose-answer pre code {
   background: none;
@@ -185,25 +252,30 @@ body::before {
 .prose-answer table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
   display: block;
   overflow-x: auto;
 }
 .prose-answer th,
 .prose-answer td {
-  border: 1px solid rgb(255 255 255 / 0.08);
-  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.45rem 0.7rem 0.45rem 0;
   text-align: left;
   vertical-align: top;
 }
 .prose-answer th {
-  background: rgb(255 255 255 / 0.04);
+  border-bottom: 1px solid var(--rule-strong);
   font-weight: 600;
-  color: #fff;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
   white-space: nowrap;
 }
 .prose-answer blockquote {
-  border-left: 2px solid var(--color-ink-600);
-  padding-left: 0.9rem;
-  color: var(--color-ink-200);
+  border-left: 2px solid var(--rule-strong);
+  padding-left: 1rem;
+  color: var(--ink-muted);
+  font-style: italic;
 }

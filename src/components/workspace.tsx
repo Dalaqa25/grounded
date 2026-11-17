@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, PanelRightClose, PanelRightOpen, RotateCcw, Square } from "lucide-react";
-import { ACCENTS, type Mode } from "@/lib/modes";
+import type { Mode } from "@/lib/modes";
 import type { ChatEvent, RetrievalMode, RetrievalTrace } from "@/lib/types";
 import { Answer } from "./answer";
-import { RetrievalPanel, StrategyToggle } from "./retrieval-panel";
+import { Apparatus, StrategyToggle } from "./apparatus";
 
 interface Message {
   id: string;
@@ -18,27 +17,29 @@ interface Message {
 }
 
 const STAGE_COPY = {
-  rewriting: "Resolving the question against the conversation",
+  rewriting: "Reading the question against the conversation",
   retrieving: "Searching the corpus",
-  generating: "Writing the answer",
+  generating: "Writing",
 } as const;
 
-export function Workspace({ mode, stats }: { mode: Mode; stats: { documents: number; chunks: number } | null }) {
+export function Workspace({
+  mode,
+  stats,
+}: {
+  mode: Mode;
+  stats: { documents: number; chunks: number } | null;
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [strategy, setStrategy] = useState<RetrievalMode>("hybrid");
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
-  const [panelOpen, setPanelOpen] = useState(true);
 
   const abortRef = useRef<AbortController | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
-  const accent = ACCENTS[mode.accent];
   const lastTrace = [...messages].reverse().find((m) => m.trace)?.trace ?? null;
 
-  // Reset when the workspace changes — a trace from another corpus is noise.
   useEffect(() => {
     setMessages([]);
     setActiveCitation(null);
@@ -46,9 +47,8 @@ export function Workspace({ mode, stats }: { mode: Mode; stats: { documents: num
   }, [mode.id]);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages]);
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages.length]);
 
   const send = useCallback(
     async (question: string) => {
@@ -63,20 +63,12 @@ export function Workspace({ mode, stats }: { mode: Mode; stats: { documents: num
         .filter((m) => !m.error)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: trimmed,
-      };
       const assistantId = crypto.randomUUID();
-      const assistantMessage: Message = {
-        id: assistantId,
-        role: "assistant",
-        content: "",
-        stage: "retrieving",
-      };
-
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: "user", content: trimmed },
+        { id: assistantId, role: "assistant", content: "", stage: "retrieving" },
+      ]);
 
       const patch = (fn: (m: Message) => Message) =>
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? fn(m) : m)));
@@ -124,13 +116,11 @@ export function Workspace({ mode, stats }: { mode: Mode; stats: { documents: num
               continue;
             }
 
-            if (event.type === "status") {
-              patch((m) => ({ ...m, stage: event.stage }));
-            } else if (event.type === "retrieval") {
-              patch((m) => ({ ...m, trace: event.trace }));
-            } else if (event.type === "token") {
+            if (event.type === "status") patch((m) => ({ ...m, stage: event.stage }));
+            else if (event.type === "retrieval") patch((m) => ({ ...m, trace: event.trace }));
+            else if (event.type === "token")
               patch((m) => ({ ...m, content: m.content + event.value, stage: null }));
-            } else if (event.type === "done") {
+            else if (event.type === "done")
               patch((m) => ({
                 ...m,
                 stage: null,
@@ -140,9 +130,8 @@ export function Workspace({ mode, stats }: { mode: Mode; stats: { documents: num
                   model: event.model,
                 },
               }));
-            } else if (event.type === "error") {
+            else if (event.type === "error")
               patch((m) => ({ ...m, stage: null, error: event.message }));
-            }
           }
         }
       } catch (error) {
@@ -161,167 +150,134 @@ export function Workspace({ mode, stats }: { mode: Mode; stats: { documents: num
     [busy, messages, mode.id, strategy],
   );
 
-  const stop = () => {
-    abortRef.current?.abort();
-    setBusy(false);
-  };
-
   return (
-    <div className="flex h-dvh min-w-0 flex-1">
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* ------------------------------------------------------ header -- */}
-        <header className="flex shrink-0 items-center gap-4 border-b border-white/7 px-6 py-3.5">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className={`size-1.5 rounded-full ${accent.dot}`} />
-              <h1 className="truncate text-[15px] font-semibold tracking-tight text-white">
+    <div className="mx-auto w-full max-w-[86rem] px-6">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        {/* ------------------------------------------------- the document -- */}
+        <main className="min-w-0 pb-40 pt-10 lg:border-r lg:border-rule lg:pr-10">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-rule pb-3">
+            <div>
+              <h1 className="text-[1.5rem] leading-tight tracking-[-0.012em]">
                 {mode.name}
               </h1>
-              {stats && (
-                <span className="hidden font-mono text-[11px] text-ink-500 sm:inline">
-                  {stats.documents} docs · {stats.chunks} chunks
-                </span>
-              )}
+              <p className="mt-0.5 text-[0.88rem] italic text-ink-muted">
+                {mode.tagline}
+              </p>
             </div>
-            <p className="mt-0.5 truncate text-[12px] text-ink-400">{mode.blurb}</p>
+            <div className="flex items-center gap-5">
+              {stats && (
+                <p className="figure-num">
+                  {stats.documents} documents · {stats.chunks} passages
+                </p>
+              )}
+              <StrategyToggle value={strategy} onChange={setStrategy} disabled={busy} />
+            </div>
           </div>
 
-          <StrategyToggle value={strategy} onChange={setStrategy} disabled={busy} />
-
-          {messages.length > 0 && (
-            <button
-              onClick={() => {
-                setMessages([]);
-                setActiveCitation(null);
-              }}
-              title="Clear conversation"
-              className="rounded-lg p-1.5 text-ink-400 transition hover:bg-white/6 hover:text-ink-100"
-            >
-              <RotateCcw className="size-4" strokeWidth={1.8} />
-            </button>
+          {messages.length === 0 ? (
+            <Opening mode={mode} onPick={send} />
+          ) : (
+            <ol className="mt-8 flex flex-col gap-10">
+              {messages.map((message) =>
+                message.role === "user" ? (
+                  <li key={message.id} className="animate-rise">
+                    <p className="label mb-1.5">Question</p>
+                    <p className="max-w-[58ch] text-[1.18rem] leading-snug tracking-[-0.008em]">
+                      {message.content}
+                    </p>
+                  </li>
+                ) : (
+                  <li key={message.id} className="animate-rise max-w-[62ch]">
+                    <Reply
+                      message={message}
+                      activeCitation={activeCitation}
+                      onSelectCitation={setActiveCitation}
+                    />
+                  </li>
+                ),
+              )}
+            </ol>
           )}
 
-          <button
-            onClick={() => setPanelOpen((v) => !v)}
-            title={panelOpen ? "Hide retrieval panel" : "Show retrieval panel"}
-            className="rounded-lg p-1.5 text-ink-400 transition hover:bg-white/6 hover:text-ink-100"
-          >
-            {panelOpen ? (
-              <PanelRightClose className="size-4" strokeWidth={1.8} />
-            ) : (
-              <PanelRightOpen className="size-4" strokeWidth={1.8} />
-            )}
-          </button>
-        </header>
+          <div ref={endRef} />
+        </main>
 
-        {/* ---------------------------------------------------- messages -- */}
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[46rem] px-6 py-6">
-            {messages.length === 0 ? (
-              <EmptyState mode={mode} onPick={send} />
-            ) : (
-              <ul className="flex flex-col gap-7">
-                {messages.map((message) => (
-                  <li key={message.id} className="animate-rise">
-                    {message.role === "user" ? (
-                      <div className="flex justify-end">
-                        <p className="max-w-[85%] rounded-2xl rounded-br-md bg-white/8 px-3.5 py-2 text-[14px] leading-relaxed text-ink-100 ring-1 ring-white/8">
-                          {message.content}
-                        </p>
-                      </div>
-                    ) : (
-                      <AssistantMessage
-                        message={message}
-                        activeCitation={activeCitation}
-                        onSelectCitation={(n) => {
-                          setActiveCitation(n);
-                          setPanelOpen(true);
-                        }}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+        {/* ----------------------------------------------- the apparatus -- */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-[7.4rem] max-h-[calc(100dvh-9rem)] overflow-y-auto pb-10">
+            <Apparatus
+              trace={lastTrace}
+              activeCitation={activeCitation}
+              onSelectCitation={setActiveCitation}
+              busy={busy}
+            />
           </div>
-        </div>
+        </aside>
+      </div>
 
-        {/* ---------------------------------------------------- composer -- */}
-        <div className="shrink-0 px-6 pb-5">
-          <div className="mx-auto max-w-[46rem]">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                send(input);
-              }}
-              className="panel flex items-end gap-2 rounded-2xl px-3 py-2.5 transition focus-within:ring-1 focus-within:ring-indigo-400/40"
-            >
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  const el = e.target;
-                  el.style.height = "auto";
-                  el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+      {/* --------------------------------------------------------- ask -- */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20">
+        <div className="h-16 bg-gradient-to-t from-paper to-transparent" />
+        <div className="bg-paper pb-5">
+          <div className="mx-auto max-w-[86rem] px-6">
+            <div className="lg:max-w-[calc(100%-22rem)] lg:pr-10">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  send(input);
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    send(input);
-                  }
-                }}
-                rows={1}
-                placeholder={`Ask about ${
-                  mode.id === "talent" ? "the candidates" : mode.id === "handbook" ? "the handbook" : "the platform"
-                }…`}
-                className="max-h-40 flex-1 resize-none bg-transparent py-1.5 text-[14px] leading-relaxed text-ink-100 outline-none placeholder:text-ink-500"
-              />
-
-              {busy ? (
-                <button
-                  type="button"
-                  onClick={stop}
-                  title="Stop"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-ink-100 transition hover:bg-white/15"
-                >
-                  <Square className="size-3.5 fill-current" strokeWidth={0} />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!input.trim()}
-                  title="Send"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-indigo-400 text-ink-950 transition enabled:hover:bg-indigo-300 disabled:bg-white/8 disabled:text-ink-500"
-                >
-                  <ArrowUp className="size-4" strokeWidth={2.4} />
-                </button>
-              )}
-            </form>
-            <p className="mt-2 text-center text-[11px] text-ink-500">
-              Answers come only from this workspace. Every claim is cited, and the
-              passages behind it are on the right.
-            </p>
+                className="pointer-events-auto flex items-end gap-3 border-t-2 border-ink pt-2.5"
+              >
+                <span className="label pb-2 pt-1">Ask</span>
+                <textarea
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    const el = e.target;
+                    el.style.height = "auto";
+                    el.style.height = `${Math.min(el.scrollHeight, 150)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      send(input);
+                    }
+                  }}
+                  rows={1}
+                  placeholder={mode.placeholder}
+                  className="max-h-36 flex-1 resize-none bg-transparent py-1 text-[1.02rem] leading-relaxed outline-none placeholder:italic placeholder:text-ink-faint"
+                />
+                {busy ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      abortRef.current?.abort();
+                      setBusy(false);
+                    }}
+                    className="pb-1.5 text-[0.82rem] text-ink-muted underline underline-offset-4 transition-colors hover:text-ink"
+                  >
+                    stop
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    className="pb-1.5 text-[0.82rem] underline underline-offset-4 transition-colors disabled:no-underline disabled:opacity-35"
+                    style={{ color: input.trim() ? "var(--accent)" : undefined }}
+                  >
+                    answer
+                  </button>
+                )}
+              </form>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* ------------------------------------------------ retrieval panel -- */}
-      {panelOpen && (
-        <aside className="hidden w-[21rem] shrink-0 border-l border-white/7 bg-ink-900/40 lg:block">
-          <RetrievalPanel
-            trace={lastTrace}
-            activeCitation={activeCitation}
-            onSelectCitation={setActiveCitation}
-            busy={busy}
-          />
-        </aside>
-      )}
     </div>
   );
 }
 
-function AssistantMessage({
+function Reply({
   message,
   activeCitation,
   onSelectCitation,
@@ -332,9 +288,11 @@ function AssistantMessage({
 }) {
   if (message.error) {
     return (
-      <div className="rounded-xl bg-red-500/8 px-4 py-3 text-[13px] text-red-200 ring-1 ring-red-500/20">
-        <p className="font-medium">That request failed.</p>
-        <p className="mt-1 font-mono text-[12px] leading-relaxed text-red-200/70">
+      <div className="border-l-2 pl-4" style={{ borderColor: "var(--accent)" }}>
+        <p className="label" style={{ color: "var(--accent)" }}>
+          Failed
+        </p>
+        <p className="mt-1 font-mono text-[0.78rem] leading-relaxed text-ink-muted">
           {message.error}
         </p>
       </div>
@@ -344,8 +302,11 @@ function AssistantMessage({
   return (
     <div>
       {message.stage && (
-        <p className="mb-2 flex items-center gap-2 text-[12px] text-ink-400">
-          <span className="animate-shimmer size-1.5 rounded-full bg-indigo-300" />
+        <p className="label flex items-center gap-2">
+          <span
+            className="animate-pulse-slow inline-block size-1 rounded-full"
+            style={{ background: "var(--accent)" }}
+          />
           {STAGE_COPY[message.stage]}…
         </p>
       )}
@@ -359,48 +320,44 @@ function AssistantMessage({
       )}
 
       {message.timing && message.trace && (
-        <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10.5px] text-ink-500">
-          <span>retrieval {message.trace.latencyMs}ms</span>
-          <span>·</span>
-          <span>answer {message.timing.answerMs}ms</span>
-          <span>·</span>
-          <span>{message.trace.chunks.length} chunks</span>
-          <span>·</span>
-          <span>{message.timing.model}</span>
+        <p className="figure-num mt-4 border-t border-rule pt-2">
+          retrieval {message.trace.latencyMs}ms · answer {message.timing.answerMs}ms ·{" "}
+          {message.trace.chunks.length} passages · {message.timing.model}
         </p>
       )}
     </div>
   );
 }
 
-function EmptyState({ mode, onPick }: { mode: Mode; onPick: (q: string) => void }) {
-  const accent = ACCENTS[mode.accent];
+function Opening({ mode, onPick }: { mode: Mode; onPick: (q: string) => void }) {
   return (
-    <div className="animate-fade pt-10">
-      <div
-        className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ${accent.bg} ${accent.text} ${accent.ring}`}
-      >
-        <span className={`size-1.5 rounded-full ${accent.dot}`} />
-        {mode.tagline}
-      </div>
-
-      <h2 className="mt-4 text-[26px] font-semibold leading-tight tracking-tight text-white">
-        Ask anything about this {mode.noun} corpus.
-      </h2>
-      <p className="mt-2 max-w-[48ch] text-[14px] leading-relaxed text-ink-300">
-        Hybrid retrieval finds the passages, the model answers from those alone,
-        and every sentence carries a citation you can open.
+    <div className="animate-fade mt-10 max-w-[60ch]">
+      <p className="text-[1.3rem] leading-[1.5] tracking-[-0.008em]">{mode.blurb}</p>
+      <p className="mt-4 text-[0.95rem] leading-relaxed text-ink-muted">
+        Ask anything. Hybrid search finds the passages, the answer is written from
+        those alone, and every claim carries a footnote you can open.
       </p>
 
-      <ul className="mt-7 flex flex-col gap-2">
-        {mode.samples.map((sample) => (
-          <li key={sample}>
+      <p className="label mt-10 border-b border-rule pb-2">Try one</p>
+      <ul>
+        {mode.samples.map((sample, i) => (
+          <li key={sample} className="border-b border-rule">
             <button
               onClick={() => onPick(sample)}
-              className="group flex w-full items-center gap-3 rounded-xl bg-white/3 px-3.5 py-2.5 text-left text-[13.5px] text-ink-200 ring-1 ring-white/7 transition hover:bg-white/6 hover:text-white"
+              className="group flex w-full items-baseline gap-3 py-2.5 text-left"
             >
-              <span className="flex-1">{sample}</span>
-              <ArrowUp className="size-3.5 shrink-0 rotate-45 text-ink-600 transition group-hover:text-ink-300" strokeWidth={2} />
+              <span className="figure-num shrink-0">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="flex-1 text-[1rem] leading-snug text-ink-muted transition-colors group-hover:text-ink">
+                {sample}
+              </span>
+              <span
+                className="shrink-0 text-[0.8rem] opacity-0 transition-opacity group-hover:opacity-100"
+                style={{ color: "var(--accent)" }}
+              >
+                ask →
+              </span>
             </button>
           </li>
         ))}
