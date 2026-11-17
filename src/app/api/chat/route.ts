@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { getMode } from "@/lib/modes";
-import { modelName } from "@/lib/llm";
+import { isRateLimited, modelName } from "@/lib/llm";
 import { NO_CONTEXT_REPLY, rewriteQuery, streamAnswer } from "@/lib/rag";
 import { hasUsableContext, retrieve } from "@/lib/retriever";
 import type { ChatEvent } from "@/lib/types";
@@ -103,9 +103,16 @@ export async function POST(request: NextRequest) {
           model: answeredBy,
         });
       } catch (error) {
+        // Groq's free tier allows 8,000 tokens a minute per model. A handful
+        // of overlapping visitors can saturate both the primary and the
+        // fallback, and a raw provider error dump helps nobody.
         send({
           type: "error",
-          message: error instanceof Error ? error.message : "Something went wrong",
+          message: isRateLimited(error)
+            ? "Both free-tier models are at their per-minute token limit right now. Give it a few seconds and ask again — the retrieval above already ran, so only the writing step failed."
+            : error instanceof Error
+              ? error.message
+              : "Something went wrong",
         });
       } finally {
         controller.close();

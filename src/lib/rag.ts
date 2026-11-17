@@ -115,7 +115,13 @@ export async function* streamAnswer(
     // Out of daily quota on the primary. A smaller model's answer beats an
     // error page on a public demo, and the UI reports which one replied.
     if (!isRateLimited(error)) throw error;
-    stream = await withGroqRetry(() => fallbackModel().stream(messages));
+    // The fallback has its own per-minute budget and can be saturated too.
+    // Wait briefly, then give up: a clear message beats a spinner that hangs
+    // for a minute while retries back off.
+    stream = await withGroqRetry(() => fallbackModel().stream(messages), {
+      attempts: 3,
+      maxWaitMs: 4_000,
+    });
     onModel?.(fallbackModelName());
   }
 
