@@ -141,7 +141,16 @@ async function runCase(
     answer = NO_CONTEXT_REPLY;
   } else {
     const parts: string[] = [];
-    for await (const token of streamAnswer(mode, testCase.question, trace.chunks, [])) {
+    // chain: false — every case must be answered by the same model, or the
+    // published accuracy is an average over three different ones.
+    for await (const token of streamAnswer(
+      mode,
+      testCase.question,
+      trace.chunks,
+      [],
+      undefined,
+      { chain: false },
+    )) {
       parts.push(token);
     }
     answer = parts.join("");

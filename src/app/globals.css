@@ -193,6 +193,11 @@ body {
 .prose-answer > * + * {
   margin-top: 0.9em;
 }
+/* Prose keeps a readable measure; a table is data and may use the full
+   column, because a comparison clipped at 62ch is unreadable. */
+.prose-answer > *:not(table) {
+  max-width: 62ch;
+}
 .prose-answer strong {
   font-weight: 600;
 }
@@ -250,7 +255,9 @@ body {
   font-size: inherit;
 }
 .prose-answer table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   font-family: var(--font-sans);
   font-size: 0.86rem;

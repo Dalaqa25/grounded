@@ -6,9 +6,16 @@
  * answer as ungrounded.
  */
 export function normaliseCitations(text: string): string {
-  return text
-    .replace(/[【［]\s*(\d{1,2})\s*[】］]/g, "[$1]")
-    .replace(/\[\s*(?:source|ref|citation)s?\s*[:#]?\s*(\d{1,2})\s*\]/gi, "[$1]");
+  return (
+    text
+      // gpt-oss reaches for OpenAI's file-citation form, 【3†L9-L12】, which
+      // carries a line range after a dagger. Seen in production rendering as
+      // literal text next to every claim, which looked broken.
+      .replace(/[【［]\s*(\d{1,2})\s*(?:[†‡][^】］]*)?\s*[】］]/g, "[$1]")
+      .replace(/\[\s*(?:source|ref|citation)s?\s*[:#]?\s*(\d{1,2})\s*\]/gi, "[$1]")
+      // Some turns emit [3†L9-L12] with ASCII brackets but the same dagger.
+      .replace(/\[(\d{1,2})[†‡][^\]]*\]/g, "[$1]")
+  );
 }
 
 /** The citation numbers an answer actually uses, in order of appearance. */

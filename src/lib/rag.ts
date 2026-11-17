@@ -57,7 +57,7 @@ export function buildSystemPrompt(mode: Mode, chunks: RetrievedChunk[]): string 
     "3. If the sources do not answer the question, say exactly what is missing and stop. Do not apologise at length.",
     "4. Be complete. Give every figure, limit, deadline, exception and follow-up step the sources state for this question. An answer that is correct but omits a stated limit or caveat is wrong.",
     "5. Answer every part of a multi-part question, and when asked to compare, name the trade-off rather than listing both sides neutrally.",
-    "6. Prefer short paragraphs, bullets or a small table. No preamble like 'Based on the sources'. Start with the answer.",
+    "6. Prefer short paragraphs or bullets. Use a table only for a genuine comparison, never more than three columns, and keep cells to a few words. No preamble like 'Based on the sources'. Start with the answer.",
     "7. If sources disagree, show both and cite each.",
     "",
     "Sources:",
@@ -79,6 +79,12 @@ export async function* streamAnswer(
   history: ChatTurn[],
   /** Called once with the model that actually produced the answer. */
   onModel?: (name: string) => void,
+  /**
+   * Measurement mode. The chain is right for a live visitor and wrong for the
+   * eval suite: numbers mixed across three models measure nothing. With this
+   * set, the primary is waited for instead of stepped past.
+   */
+  opts: { chain?: boolean } = {},
 ): AsyncGenerator<string> {
   const model = chatModel({ temperature: 0.1, maxTokens: 900 });
 
@@ -96,7 +102,7 @@ export async function* streamAnswer(
   // throttled one is a reason to move down rather than to wait. Nothing is
   // retried in place here — on an interactive request a second model now
   // beats the same model in twenty seconds.
-  const chain = modelChain();
+  const chain = opts.chain === false ? modelChain().slice(0, 1) : modelChain();
   let stream: Awaited<ReturnType<typeof model.stream>> | null = null;
   let lastError: unknown;
 
@@ -104,8 +110,8 @@ export async function* streamAnswer(
     const candidate = index === 0 ? model : modelAt(name, { maxTokens: 900 });
     try {
       stream = await withGroqRetry(() => candidate.stream(messages), {
-        attempts: 2,
-        maxWaitMs: index === chain.length - 1 ? 3_000 : 0,
+        attempts: opts.chain === false ? 6 : 2,
+        maxWaitMs: index === chain.length - 1 ? (opts.chain === false ? 45_000 : 3_000) : 0,
       });
       onModel?.(name);
       break;

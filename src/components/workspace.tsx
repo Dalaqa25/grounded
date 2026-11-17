@@ -187,7 +187,7 @@ export function Workspace({
                     </p>
                   </li>
                 ) : (
-                  <li key={message.id} className="animate-rise max-w-[62ch]">
+                  <li key={message.id} className="animate-rise min-w-0">
                     <Reply
                       message={message}
                       activeCitation={activeCitation}
