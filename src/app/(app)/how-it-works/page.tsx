@@ -34,12 +34,18 @@ const STAGES = [
   },
   {
     n: "05",
+    title: "Cap what one document can take",
+    body: "The fused list is over-fetched, then trimmed with a per-document cap before it reaches the model. The cap differs per workspace: breadth for the candidate pool, depth for the docs.",
+    why: "Measured: asked who had OAuth experience, pure relevance ordering returned three chunks of one candidate and three of another — six slots, two people, out of twelve profiles. The model named two and was graded wrong for missing a third that had never been in its context. With the cap, the same ten slots cover eight candidates, and talent accuracy went from 40% to 67%.",
+  },
+  {
+    n: "06",
     title: "Decline in two layers",
     body: "A cosine-similarity floor catches questions that are plainly not about the corpus, and the model is never called. For on-topic questions the corpus happens not to answer, the model is instructed to decline and cite nothing.",
     why: "The floor deliberately measures similarity, not the fused score — an RRF score is built from ranks, so the top hit always scores about 1/(k+1) however irrelevant it is. On this corpus “the best recipe for khinkali” scored 0.0392 against the candidate pool, beating a real question about OAuth at 0.0378. Similarity separates cleanly: 0.73–0.85 for real questions, 0.57–0.66 for off-corpus ones.",
   },
   {
-    n: "06",
+    n: "07",
     title: "Show the work",
     body: "The retrieval panel shows every chunk the model received, its fused score, and whether it came from semantic search, keyword search or both.",
     why: "When an answer is wrong, the useful question is whether retrieval missed or generation drifted. Without the trace you are guessing.",
@@ -95,9 +101,9 @@ export default function HowItWorksPage() {
                   ["Framework", "Next.js 15 · React 19 · TypeScript"],
                   ["Orchestration", "LangChain v1 (core, Groq, Google GenAI, text splitters)"],
                   ["Vector store", "Supabase Postgres · pgvector · HNSW"],
-                  ["Keyword search", "Postgres full-text · GIN index · websearch_to_tsquery"],
-                  ["Generation", "Groq (Llama) — streamed over server-sent events"],
-                  ["Embeddings", "Gemini text-embedding-004 · 768 dimensions"],
+                  ["Keyword search", "Postgres full-text · GIN index · lexemes OR-ed, ranked by ts_rank_cd"],
+                  ["Generation", "Groq gpt-oss-120b — streamed over SSE, falls back to gpt-oss-20b at the quota"],
+                  ["Embeddings", "Gemini gemini-embedding-2 · 768 dimensions · separate document and query encoders"],
                   ["Evaluation", "45 fixed cases, model-graded against per-question rubrics"],
                 ].map(([k, v]) => (
                   <tr key={k}>
@@ -142,7 +148,8 @@ function Pipeline() {
     { label: "Condense", sub: "if follow-up" },
     { label: "Embed", sub: "768-d" },
     { label: "Hybrid search", sub: "vector + FTS" },
-    { label: "RRF fuse", sub: "top 6" },
+    { label: "RRF fuse", sub: "rank merge" },
+    { label: "Diversify", sub: "per-doc cap" },
     { label: "Generate", sub: "cited" },
   ];
 

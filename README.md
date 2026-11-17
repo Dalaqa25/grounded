@@ -7,7 +7,7 @@
 Hybrid search over Postgres, inline citations, a visible trace of every passage
 the model was given, and a fixed evaluation suite that reports the failures too.
 
-[Live demo](https://grounded-demo.vercel.app) · [How it works](https://grounded-demo.vercel.app/how-it-works) · [Evaluation](https://grounded-demo.vercel.app/evals)
+[Live demo](https://grounded-search.vercel.app) · [How it works](https://grounded-search.vercel.app/how-it-works) · [Evaluation](https://grounded-search.vercel.app/evals)
 
 </div>
 
@@ -43,12 +43,12 @@ Everything runs on free tiers.
 ## Measured, not asserted
 
 45 fixed questions, graded end to end by `npm run eval`. Results, including the
-ones that fail, are rendered at [`/evals`](https://grounded-demo.vercel.app/evals).
+ones that fail, are rendered at [`/evals`](https://grounded-search.vercel.app/evals).
 
 | Metric | What it checks |
 |---|---|
 | Answer accuracy | A second model grades the answer against a written rubric per question |
-| Retrieval hit rate | Did the document that holds the answer make the top 6? |
+| Retrieval hit rate | Did the document that holds the answer make the final set? |
 | Grounding | Does every `[n]` point at a chunk that was actually retrieved? |
 | Refusal | On questions the corpus cannot answer, did it decline instead of improvising? |
 
@@ -66,9 +66,9 @@ same question twice — the retrieval panel shows why fusion is there.
 | Framework | Next.js 15 · React 19 · TypeScript · Tailwind v4 |
 | Orchestration | LangChain v1 — `@langchain/core`, `@langchain/groq`, `@langchain/google-genai`, `@langchain/textsplitters` |
 | Vector store | Supabase Postgres · pgvector · HNSW index |
-| Keyword search | Postgres full-text · GIN index · `websearch_to_tsquery` |
-| Generation | Groq (Llama), streamed over server-sent events |
-| Embeddings | Gemini `text-embedding-004`, 768 dimensions |
+| Keyword search | Postgres full-text · GIN index · lexemes OR-ed and ranked with `ts_rank_cd` |
+| Generation | Groq `gpt-oss-120b`, streamed over server-sent events, falling back to `gpt-oss-20b` at the quota |
+| Embeddings | Gemini `gemini-embedding-2` at 768 dimensions, separate document and query encoders |
 
 ## Running it
 
@@ -95,6 +95,9 @@ cp .env.example .env.local
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project settings → API |
 | `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) |
 | `GOOGLE_API_KEY` | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
+
+`GROQ_MODEL`, `GROQ_JUDGE_MODEL` and `EMBEDDING_MODEL` have working defaults in
+`.env.example`; override them if a provider retires an id.
 
 Groq does not serve embeddings, which is the only reason a second provider is
 in here. The embedding layer sits behind one narrow interface in
@@ -129,21 +132,21 @@ prints the current list rather than leaving you to guess.
 
 ## Deploying
 
-Push to GitHub, import the repository on Vercel, and add the same four
-variables in **Settings → Environment Variables**. Ingest runs from your
+Push to GitHub, import the repository on Vercel, and add the same variables in
+**Settings → Environment Variables**. Ingest runs from your
 machine against the same Supabase project, so the deployment has data the
 moment it goes up.
 
 ## How it works
 
 ```
-question → condense (if follow-up) → embed → ┌ vector search ┐
-                                             │               ├ RRF fuse → top 6 → generate with citations
-                                             └ keyword search┘
+question → condense (if follow-up) → embed → ┌ vector search  ┐
+                                             │                ├ RRF fuse → per-document cap → generate with citations
+                                             └ keyword search ┘
 ```
 
-Six decisions worth calling out, each with the reasoning, are on the
-[How it works](https://grounded-demo.vercel.app/how-it-works) page. The short
+Several decisions worth calling out, each with the reasoning, are on the
+[How it works](https://grounded-search.vercel.app/how-it-works) page. The short
 version:
 
 1. **Chunks carry a breadcrumb.** Each chunk is prefixed with its document title
@@ -167,6 +170,16 @@ version:
    questions, 0.57–0.66 for off-corpus ones. The floor sits at 0.62, low on
    purpose, because a false refusal is worse than a cited "the sources do not
    cover this" — and the model's own refusal is the second layer.
+
+5. **One document cannot take the whole context.** Also measured: asked who had
+   OAuth experience, pure relevance ordering returned three chunks of one
+   candidate and three of another — six slots, two people, out of twelve
+   profiles. The model named two and was graded wrong for missing a third that
+   had never been in its context. Retrieval now over-fetches and applies a
+   per-document cap, so the same ten slots cover eight candidates. Talent
+   accuracy went from 40% to 67% on the fixed suite. The cap is per workspace,
+   because a candidate pool is asked *who matches?* and wants breadth, while a
+   docs page is asked *what does this mean?* and wants depth.
 
 ## Layout
 
