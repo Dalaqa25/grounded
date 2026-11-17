@@ -1,12 +1,5 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import {
-  chatModel,
-  fallbackModel,
-  fallbackModelName,
-  isRateLimited,
-  modelName,
-  withGroqRetry,
-} from "./llm";
+import { chatModel, isRateLimited, modelAt, modelChain, withGroqRetry } from "./llm";
 import type { Mode } from "./modes";
 import type { ChatTurn, RetrievedChunk } from "./types";
 
@@ -99,31 +92,30 @@ export async function* streamAnswer(
     new HumanMessage(question),
   ];
 
-  let stream;
-  try {
-    // maxWaitMs 0: never sit out a rate limit on an interactive request.
-    // Groq's free tier allows 8,000 tokens a minute, which two overlapping
-    // visitors can exceed; waiting for the window turned a 2-second answer
-    // into a 43-second one in testing. Dropping straight to the smaller
-    // model is a far better trade for someone watching a cursor blink.
-    stream = await withGroqRetry(() => model.stream(messages), {
-      attempts: 2,
-      maxWaitMs: 0,
-    });
-    onModel?.(modelName());
-  } catch (error) {
-    // Out of daily quota on the primary. A smaller model's answer beats an
-    // error page on a public demo, and the UI reports which one replied.
-    if (!isRateLimited(error)) throw error;
-    // The fallback has its own per-minute budget and can be saturated too.
-    // Wait briefly, then give up: a clear message beats a spinner that hangs
-    // for a minute while retries back off.
-    stream = await withGroqRetry(() => fallbackModel().stream(messages), {
-      attempts: 3,
-      maxWaitMs: 4_000,
-    });
-    onModel?.(fallbackModelName());
+  // Walk the chain: each model has its own per-minute token budget, so a
+  // throttled one is a reason to move down rather than to wait. Nothing is
+  // retried in place here — on an interactive request a second model now
+  // beats the same model in twenty seconds.
+  const chain = modelChain();
+  let stream: Awaited<ReturnType<typeof model.stream>> | null = null;
+  let lastError: unknown;
+
+  for (const [index, name] of chain.entries()) {
+    const candidate = index === 0 ? model : modelAt(name, { maxTokens: 900 });
+    try {
+      stream = await withGroqRetry(() => candidate.stream(messages), {
+        attempts: 2,
+        maxWaitMs: index === chain.length - 1 ? 3_000 : 0,
+      });
+      onModel?.(name);
+      break;
+    } catch (error) {
+      lastError = error;
+      if (!isRateLimited(error)) throw error;
+    }
   }
+
+  if (!stream) throw lastError;
 
   for await (const part of stream) {
     const text = typeof part.content === "string" ? part.content : "";

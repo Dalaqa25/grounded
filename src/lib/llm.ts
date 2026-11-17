@@ -44,19 +44,33 @@ export function judgeModel() {
 }
 
 /**
- * The smaller model, used when the primary is rate-limited.
+ * Models tried in order when the one before is rate-limited.
  *
- * Groq's free tier caps tokens per day per model. A public demo that dies at
- * the cap is a demo that is broken whenever someone actually tries it, so a
- * degraded answer from a smaller model beats an error page. The UI reports
- * which model answered, so the fallback is visible rather than quietly
- * pretending nothing happened.
+ * Groq's free tier meters tokens per minute *per model*, so a chain is not
+ * just redundancy — it multiplies throughput. One model gives roughly two
+ * questions a minute on these prompt sizes; three give six, which is the
+ * difference between a demo that works while somebody clicks through it and
+ * one that throws on their third question.
+ *
+ * Quality descends down the chain, so the UI names whichever model answered
+ * rather than quietly pretending nothing changed.
  */
-export function fallbackModel(opts: { temperature?: number; maxTokens?: number } = {}) {
-  const { GROQ_API_KEY, GROQ_JUDGE_MODEL } = env();
+export function modelChain(): string[] {
+  const { GROQ_MODEL, GROQ_FALLBACK_MODELS } = env();
+  const rest = GROQ_FALLBACK_MODELS.split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
+  return [GROQ_MODEL, ...rest.filter((m) => m !== GROQ_MODEL)];
+}
+
+export function modelAt(
+  name: string,
+  opts: { temperature?: number; maxTokens?: number } = {},
+) {
+  const { GROQ_API_KEY } = env();
   return new ChatGroq({
     apiKey: GROQ_API_KEY,
-    model: GROQ_JUDGE_MODEL,
+    model: name,
     temperature: opts.temperature ?? 0.1,
     maxTokens: opts.maxTokens ?? 900,
     reasoningEffort: "low",
@@ -66,10 +80,6 @@ export function fallbackModel(opts: { temperature?: number; maxTokens?: number }
 
 export function modelName(): string {
   return env().GROQ_MODEL;
-}
-
-export function fallbackModelName(): string {
-  return env().GROQ_JUDGE_MODEL;
 }
 
 /** True when the provider refused because a quota is exhausted. */

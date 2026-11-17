@@ -231,13 +231,22 @@ async function testAnswers() {
       r.error ? r.error.slice(0, 90) : `${r.tokens.length} chars`,
     );
     check(`${mode}: answer contains expected fact`, hit, hit ? "" : r.tokens.slice(0, 110));
-    check(`${mode}: answer carries citations`, cited.length > 0, `[${cited.join(",")}]`);
+    check(
+      `${mode}: answer carries citations`,
+      cited.length > 0,
+      cited.length ? `[${cited.join(",")}]` : `no markers in: ${JSON.stringify(r.tokens.slice(0, 160))}`,
+    );
     check(
       `${mode}: every citation resolves to a retrieved passage`,
       cited.length > 0 &&
         r.trace != null &&
         cited.every((n) => n >= 1 && n <= r.trace!.chunks.length),
       `${r.trace?.chunks.length ?? 0} passages`,
+    );
+    check(
+      `${mode}: answer is not an error`,
+      r.error === null,
+      r.error ? r.error.slice(0, 110) : "",
     );
     check(
       `${mode}: retrieval trace arrives before the answer`,

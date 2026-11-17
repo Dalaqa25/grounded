@@ -11,6 +11,9 @@ const schema = z.object({
   GROQ_API_KEY: z.string().min(10),
   GROQ_MODEL: z.string().default("openai/gpt-oss-120b"),
   GROQ_JUDGE_MODEL: z.string().default("openai/gpt-oss-20b"),
+  GROQ_FALLBACK_MODELS: z
+    .string()
+    .default("openai/gpt-oss-20b,qwen/qwen3.8-27b"),
   GOOGLE_API_KEY: z.string().min(10),
   EMBEDDING_MODEL: z.string().default("gemini-embedding-2"),
 });
@@ -29,6 +32,7 @@ export function env(): Env {
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     GROQ_MODEL: process.env.GROQ_MODEL,
     GROQ_JUDGE_MODEL: process.env.GROQ_JUDGE_MODEL,
+    GROQ_FALLBACK_MODELS: process.env.GROQ_FALLBACK_MODELS,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
     EMBEDDING_MODEL: process.env.EMBEDDING_MODEL,
   });
