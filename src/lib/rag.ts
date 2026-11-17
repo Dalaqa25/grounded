@@ -28,18 +28,33 @@ export async function rewriteQuery(
     .map((t) => `${t.role === "user" ? "User" : "Assistant"}: ${t.content}`)
     .join("\n");
 
-  const model = chatModel({ temperature: 0, maxTokens: 120 });
-  const result = await withGroqRetry(() =>
-    model.invoke([
+  const messages = [
     new SystemMessage(
       "Rewrite the user's latest message as a standalone search query that makes sense without the conversation. " +
         "Resolve pronouns and implied subjects using the transcript. " +
         "Keep proper nouns and technical terms exactly as written. " +
         "Reply with the query only — no preamble, no quotes.",
     ),
-      new HumanMessage(`Transcript:\n${transcript}\n\nLatest message: ${question}`),
-    ]),
-  );
+    new HumanMessage(`Transcript:\n${transcript}\n\nLatest message: ${question}`),
+  ];
+
+  // Walks the same chain as the answer step. Rewriting used to try one model
+  // and quietly give up when it was throttled, which sent the raw follow-up
+  // to search — "what is her notice period?" retrieves nothing useful on its
+  // own, so multi-turn silently got worse exactly when the demo was busy.
+  let result;
+  for (const [index, name] of modelChain().entries()) {
+    try {
+      result = await withGroqRetry(
+        () => modelAt(name, { temperature: 0, maxTokens: 160 }).invoke(messages),
+        { attempts: 2, maxWaitMs: index === 0 ? 0 : 2_000 },
+      );
+      break;
+    } catch (error) {
+      if (!isRateLimited(error)) break; // a real error: fall back to the raw question
+    }
+  }
+  if (!result) return question;
 
   const text = String(result.content).trim().replace(/^["']|["']$/g, "");
   return text.length > 3 && text.length < 400 ? text : question;

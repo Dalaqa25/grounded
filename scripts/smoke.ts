@@ -352,7 +352,7 @@ async function testFollowUp() {
   } else {
     check(
       "follow-up resolves to the right person",
-      /2\s*month|two\s*month/i.test(plain(second.tokens)),
+      /(?:2|two)[\s-]*month/i.test(plain(second.tokens)),
       second.tokens.slice(0, 120),
     );
   }
