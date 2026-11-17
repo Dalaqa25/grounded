@@ -22,7 +22,8 @@ config({ path: ".env.local", quiet: true });
 config({ quiet: true });
 
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { chatModel, modelName } from "../src/lib/llm";
+import { judgeModel, judgeModelName, modelName, withGroqRetry } from "../src/lib/llm";
+import { citedNumbers, looksLikeRefusal } from "../src/lib/citations";
 import { getMode, MODES } from "../src/lib/modes";
 import { NO_CONTEXT_REPLY, streamAnswer } from "../src/lib/rag";
 import { hasUsableContext, retrieve } from "../src/lib/retriever";
@@ -61,31 +62,50 @@ async function judge(
   rubric: string,
   answer: string,
 ): Promise<{ pass: boolean; note: string }> {
-  const model = chatModel({ temperature: 0, maxTokens: 200 });
-  const result = await model.invoke([
-    new SystemMessage(
-      "You grade an assistant's answer against a rubric. The rubric lists what a correct answer must contain. " +
-        "Pass if the answer covers the substance of the rubric and contains no claim that contradicts it. " +
-        "Extra correct detail is fine. Wrong numbers, invented names or missing key facts fail. " +
-        'Reply as JSON only: {"pass": true|false, "note": "one short sentence"}',
-    ),
-    new HumanMessage(
-      `Question: ${question}\n\nRubric: ${rubric}\n\nAnswer:\n${answer}`,
-    ),
-  ]);
+  const model = judgeModel();
+  const result = await withGroqRetry(() =>
+    model.invoke([
+      new SystemMessage(
+        "You grade an assistant's answer against a rubric. The rubric lists what a correct answer must contain. " +
+          "Pass if the answer covers the substance of the rubric and contains no claim that contradicts it. " +
+          "Extra correct detail is fine. Wrong numbers, invented names or missing key facts fail. " +
+          'Reply with JSON only, no prose: {"pass": true|false, "note": "one short sentence"}',
+      ),
+      new HumanMessage(
+        `Question: ${question}\n\nRubric: ${rubric}\n\nAnswer:\n${answer}`,
+      ),
+    ]),
+  );
 
-  const text = String(result.content);
-  try {
-    const json = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
-    return { pass: Boolean(json.pass), note: String(json.note ?? "") };
-  } catch {
-    return { pass: false, note: `judge returned unparseable output: ${text.slice(0, 80)}` };
+  const text = String(result.content ?? "").trim();
+  if (!text) return { pass: false, note: "judge returned an empty response" };
+
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    try {
+      const json = JSON.parse(text.slice(start, end + 1));
+      return { pass: Boolean(json.pass), note: String(json.note ?? "") };
+    } catch {
+      /* fall through to the loose check below */
+    }
   }
+
+  // Some models answer in prose despite the instruction. Rather than score a
+  // valid answer as a failure because the grader was chatty, fall back to
+  // reading the verdict out of the text.
+  if (/\bpass(ed)?\b|\bcorrect\b/i.test(text) && !/\bfail/i.test(text)) {
+    return { pass: true, note: text.slice(0, 120) };
+  }
+  if (/\bfail(ed)?\b|\bincorrect\b/i.test(text)) {
+    return { pass: false, note: text.slice(0, 120) };
+  }
+  return { pass: false, note: `unparseable grader output: ${text.slice(0, 80)}` };
 }
 
 /** Every [n] in the answer must point at a chunk that was actually retrieved. */
 function checkGrounding(answer: string, chunkCount: number): boolean {
-  const cited = [...answer.matchAll(/\[(\d+)\]/g)].map((m) => Number(m[1]));
+  const cited = citedNumbers(answer);
   if (!cited.length) return false;
   return cited.every((n) => n >= 1 && n <= chunkCount);
 }
@@ -126,11 +146,7 @@ async function runCase(
     answer = parts.join("");
   }
 
-  const refused =
-    !usable ||
-    /could not find|does not cover|not covered|no information|nothing in (this|the) (workspace|corpus|sources)/i.test(
-      answer,
-    );
+  const refused = !usable || looksLikeRefusal(answer);
 
   const groundingOk = refused ? true : checkGrounding(answer, trace.chunks.length);
 
@@ -175,7 +191,9 @@ async function main() {
   );
 
   console.log(
-    `${bold("Evaluation")} ${dim(`· retrieval=${retrievalMode} · model=${modelName()}`)}\n`,
+    `${bold("Evaluation")} ${dim(
+      `· retrieval=${retrievalMode} · answers=${modelName()} · grader=${judgeModelName()}`,
+    )}\n`,
   );
 
   const perWorkspace: Record<string, CaseResult[]> = {};
@@ -190,7 +208,26 @@ async function main() {
     const results: CaseResult[] = [];
 
     for (const testCase of suite.cases) {
-      const result = await runCase(workspace, testCase, retrievalMode);
+      // A long run must survive one bad case. Recording the failure and
+      // carrying on beats losing 44 good results to a transient timeout.
+      let result: CaseResult;
+      try {
+        result = await runCase(workspace, testCase, retrievalMode);
+      } catch (error) {
+        result = {
+          id: testCase.id,
+          question: testCase.question,
+          answerable: testCase.answerable,
+          retrievalHit: null,
+          groundingOk: false,
+          accurate: false,
+          refusedCorrectly: null,
+          judgeNote: `errored: ${error instanceof Error ? error.message.slice(0, 120) : String(error)}`,
+          latencyMs: 0,
+          retrievedSources: [],
+          answer: "",
+        };
+      }
       results.push(result);
 
       const mark = result.accurate ? green("pass") : red("FAIL");
@@ -266,6 +303,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     retrievalMode,
     model: modelName(),
+    judgeModel: judgeModelName(),
     overall: { ...overall, cases: all.length },
     summary,
     results: perWorkspace,

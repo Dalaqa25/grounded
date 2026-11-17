@@ -9,9 +9,10 @@ const schema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
   SUPABASE_ANON_KEY: z.string().min(20).optional(),
   GROQ_API_KEY: z.string().min(10),
-  GROQ_MODEL: z.string().default("llama-3.3-70b-versatile"),
+  GROQ_MODEL: z.string().default("openai/gpt-oss-120b"),
+  GROQ_JUDGE_MODEL: z.string().default("openai/gpt-oss-20b"),
   GOOGLE_API_KEY: z.string().min(10),
-  EMBEDDING_MODEL: z.string().default("text-embedding-004"),
+  EMBEDDING_MODEL: z.string().default("gemini-embedding-2"),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -27,6 +28,7 @@ export function env(): Env {
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     GROQ_MODEL: process.env.GROQ_MODEL,
+    GROQ_JUDGE_MODEL: process.env.GROQ_JUDGE_MODEL,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
     EMBEDDING_MODEL: process.env.EMBEDDING_MODEL,
   });

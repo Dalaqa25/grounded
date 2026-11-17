@@ -84,15 +84,29 @@ as $$
     order by c.embedding <=> query_embedding
     limit candidate_count
   ),
+  -- websearch_to_tsquery ANDs every term, so a natural-language question like
+  -- "who has production experience with OAuth and third-party integrations?"
+  -- requires all nine lexemes in one chunk and matches nothing. Running the
+  -- question through to_tsvector first gives stemmed, stopword-free lexemes,
+  -- which are then OR-ed. ts_rank_cd still rewards chunks that cover more of
+  -- them, and quote_literal keeps the generated query safe.
+  query as (
+    select to_tsquery(
+             'english',
+             string_agg(quote_literal(lexeme), ' | ')
+           ) as ts
+    from unnest(tsvector_to_array(to_tsvector('english', query_text))) as lexeme
+  ),
   keyword as (
     select
       c.id,
-      row_number() over (
-        order by ts_rank_cd(c.fts, websearch_to_tsquery('english', query_text)) desc
-      ) as rank
+      row_number() over (order by ts_rank_cd(c.fts, q.ts) desc) as rank
     from chunks c
+    cross join query q
     where c.workspace = ws
-      and c.fts @@ websearch_to_tsquery('english', query_text)
+      and q.ts is not null
+      and c.fts @@ q.ts
+    order by ts_rank_cd(c.fts, q.ts) desc
     limit candidate_count
   ),
   fused as (

@@ -104,14 +104,32 @@ export async function retrieve(opts: RetrieveOptions): Promise<RetrievalTrace> {
 }
 
 /**
- * Lowest fused score we will still answer from. Below this the retrieval found
- * nothing that resembles the question, and the honest response is to say so
- * rather than let the model improvise from loosely related text.
+ * The floor is measured on cosine similarity, not on the fused score.
+ *
+ * This is worth stating plainly because the obvious choice is wrong: an RRF
+ * score is built from ranks, so whatever comes back first always scores about
+ * 1/(k+1) no matter how irrelevant it is. Measured on this corpus, "what is the
+ * best recipe for khinkali" scored 0.0392 against the candidate pool — higher
+ * than a real question about OAuth experience at 0.0378. Rank says nothing
+ * about relevance. Similarity does: real questions land at 0.73–0.85 here,
+ * off-corpus ones at 0.57–0.66.
+ *
+ * Two layers, deliberately:
+ *
+ *   1. This floor is a cheap hard gate for questions that are plainly not about
+ *      the corpus. Below it the model is never called, which is also free.
+ *   2. For the grey zone — on-topic questions the corpus happens not to answer,
+ *      like asking a candidate pool about security clearances — the floor is
+ *      left alone and the model is instructed to decline. That behaviour is
+ *      measured in the eval suite rather than assumed.
+ *
+ * Set low on purpose. A false refusal is worse than a cited "the sources do
+ * not cover this", and the second layer catches what this one lets through.
  */
-export const RELEVANCE_FLOOR = 0.0155;
+export const RELEVANCE_FLOOR = 0.62;
 
 export function hasUsableContext(trace: RetrievalTrace): boolean {
   const best = trace.chunks[0];
   if (!best) return false;
-  return best.score >= RELEVANCE_FLOOR || best.similarity >= 0.62;
+  return best.similarity >= RELEVANCE_FLOOR;
 }

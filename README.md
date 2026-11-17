@@ -29,8 +29,10 @@ customer:
 - **Citations that resolve.** Every factual sentence carries `[n]`. Clicking it
   opens the exact chunk, with its fused score and where it ranked in each
   strategy.
-- **A refusal floor.** If nothing clears a relevance threshold, the model is
-  never called. Declining is measured in the eval suite, not assumed.
+- **It declines, in two layers.** A similarity floor catches questions that are
+  plainly not about the corpus, and the model is never called. For on-topic
+  questions the corpus happens not to answer, the model is instructed to say so
+  and cite nothing. Both are measured rather than assumed.
 - **A visible trace.** Embedding time, search time, the candidate set, and
   whether each chunk arrived via semantic search, keyword search or both.
 - **Three corpora, one engine.** A candidate pool, a company handbook, and
@@ -156,8 +158,15 @@ version:
 3. **Follow-ups are condensed before search.** Retrieval has no memory;
    *"what about her Python?"* embeds to nothing useful on its own.
 
-4. **The floor comes before the model.** Below it, no generation call is made at
-   all — which is also cheaper.
+4. **The floor measures similarity, not the fused score.** This one is easy to
+   get wrong. An RRF score is built from ranks, so whatever comes back first
+   always scores about `1/(k+1)` however irrelevant it is — measured on this
+   corpus, *"what is the best recipe for khinkali"* scored **0.0392** against
+   the candidate pool, beating a real question about OAuth experience at
+   **0.0378**. Cosine similarity separates properly: 0.73–0.85 for real
+   questions, 0.57–0.66 for off-corpus ones. The floor sits at 0.62, low on
+   purpose, because a false refusal is worse than a cited "the sources do not
+   cover this" — and the model's own refusal is the second layer.
 
 ## Layout
 

@@ -34,9 +34,9 @@ const STAGES = [
   },
   {
     n: "05",
-    title: "Answer, or decline",
-    body: "If nothing clears the relevance floor, the model is never called. Otherwise it gets the passages and a rule: every factual sentence carries a citation.",
-    why: "Most RAG demos will happily answer from the nearest six chunks even when none is relevant. Refusing is a feature, and it is measured in the eval suite.",
+    title: "Decline in two layers",
+    body: "A cosine-similarity floor catches questions that are plainly not about the corpus, and the model is never called. For on-topic questions the corpus happens not to answer, the model is instructed to decline and cite nothing.",
+    why: "The floor deliberately measures similarity, not the fused score — an RRF score is built from ranks, so the top hit always scores about 1/(k+1) however irrelevant it is. On this corpus “the best recipe for khinkali” scored 0.0392 against the candidate pool, beating a real question about OAuth at 0.0378. Similarity separates cleanly: 0.73–0.85 for real questions, 0.57–0.66 for off-corpus ones.",
   },
   {
     n: "06",

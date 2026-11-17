@@ -2,6 +2,7 @@
 
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { normaliseCitations } from "@/lib/citations";
 import { withCitations } from "./citations";
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function Answer({ content, activeCitation, onSelectCitation }: Props) {
+  const normalised = normaliseCitations(content);
   const wrap = (children: React.ReactNode) =>
     withCitations(children, activeCitation, onSelectCitation);
 
@@ -35,7 +37,7 @@ export function Answer({ content, activeCitation, onSelectCitation }: Props) {
           ),
         }}
       >
-        {content}
+        {normalised}
       </Markdown>
     </div>
   );

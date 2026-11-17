@@ -1,5 +1,5 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { chatModel } from "./llm";
+import { chatModel, withGroqRetry } from "./llm";
 import type { Mode } from "./modes";
 import type { ChatTurn, RetrievedChunk } from "./types";
 
@@ -22,15 +22,17 @@ export async function rewriteQuery(
     .join("\n");
 
   const model = chatModel({ temperature: 0, maxTokens: 120 });
-  const result = await model.invoke([
+  const result = await withGroqRetry(() =>
+    model.invoke([
     new SystemMessage(
       "Rewrite the user's latest message as a standalone search query that makes sense without the conversation. " +
         "Resolve pronouns and implied subjects using the transcript. " +
         "Keep proper nouns and technical terms exactly as written. " +
         "Reply with the query only — no preamble, no quotes.",
     ),
-    new HumanMessage(`Transcript:\n${transcript}\n\nLatest message: ${question}`),
-  ]);
+      new HumanMessage(`Transcript:\n${transcript}\n\nLatest message: ${question}`),
+    ]),
+  );
 
   const text = String(result.content).trim().replace(/^["']|["']$/g, "");
   return text.length > 3 && text.length < 400 ? text : question;
@@ -50,11 +52,13 @@ export function buildSystemPrompt(mode: Mode, chunks: RetrievedChunk[]): string 
     `You answer questions using only the numbered sources below. ${mode.persona}`,
     "",
     "Rules:",
-    "1. Every factual sentence must carry a citation like [1] or [2][3], placed at the end of the sentence.",
+    "1. Every factual sentence must carry a citation at the end of the sentence, written with ASCII square brackets exactly like [1] or [2][3]. Never use 【 】, parentheses, or the word 'Source'.",
     "2. Use only what the sources state. Do not add background knowledge, do not estimate, do not fill gaps.",
     "3. If the sources do not answer the question, say exactly what is missing and stop. Do not apologise at length.",
-    "4. Prefer short paragraphs, bullets or a small table. No preamble like 'Based on the sources'. Start with the answer.",
-    "5. If sources disagree, show both and cite each.",
+    "4. Be complete. Give every figure, limit, deadline, exception and follow-up step the sources state for this question. An answer that is correct but omits a stated limit or caveat is wrong.",
+    "5. Answer every part of a multi-part question, and when asked to compare, name the trade-off rather than listing both sides neutrally.",
+    "6. Prefer short paragraphs, bullets or a small table. No preamble like 'Based on the sources'. Start with the answer.",
+    "7. If sources disagree, show both and cite each.",
     "",
     "Sources:",
     "",
@@ -86,7 +90,7 @@ export async function* streamAnswer(
     new HumanMessage(question),
   ];
 
-  const stream = await model.stream(messages);
+  const stream = await withGroqRetry(() => model.stream(messages));
   for await (const part of stream) {
     const text = typeof part.content === "string" ? part.content : "";
     if (text) yield text;

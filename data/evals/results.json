@@ -1,0 +1,280 @@
+{
+  "generatedAt": "2026-11-17T06:22:28.913Z",
+  "retrievalMode": "hybrid",
+  "model": "openai/gpt-oss-120b",
+  "judgeModel": "openai/gpt-oss-20b",
+  "overall": {
+    "accuracy": 73,
+    "retrieval": 100,
+    "grounding": 93,
+    "cases": 15
+  },
+  "summary": [
+    {
+      "workspace": "docs",
+      "name": "Docs Copilot",
+      "cases": 15,
+      "accuracy": 73,
+      "retrieval": 100,
+      "grounding": 93,
+      "refusal": 100,
+      "medianLatencyMs": 8330
+    }
+  ],
+  "results": {
+    "docs": [
+      {
+        "id": "d01",
+        "question": "How do I retry a failed step without re-running the whole workflow?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer covers required resume behavior and details.",
+        "latencyMs": 3753,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/02-passing-data-between-steps.md"
+        ],
+        "answer": "**Automatic retry (per‑step policy)**  \n\n1. Define a retry block on the step (default 3 attempts). Example:  \n\n   ```yaml\n   - id: push_invoice\n     type: http.request\n     retry:\n       max_attempts: 5          # up to 5 tries\n       backoff: exponential\n       initial_delay: 2s\n       max_delay: 60s\n       retry_on: [429, 500, 502, 503, 504, timeout]\n   ```  \n   *`max_attempts` = 1 disables retries*【2】.  \n\n2. The platform will automatically re‑execute the step on retryable failures (connection errors, timeouts, HTTP 429, HTTP 5xx) using exponential back‑off【2】. No other steps are re‑run.\n\n---\n\n**Manual retry of a single failed step**  \n\n1. After the run fails, open it in the UI and click **Resume from failed step**, or call the resume endpoint:  \n\n   ```http\n   POST /v1/runs/{run_id}/resume\n   Content-Type: application/json\n\n   { \"from_step\": \"push_invoice\" }\n   ```  \n\n   *If `from_step` is omitted, the first failed step is resumed*【1】.  \n\n2. Only the specified step and any downstream steps are re‑executed; earlier steps reuse their recorded outputs【1】.  \n\n**Constraints**  \n\n- Resume is allowed only within **14 days** of the failure and while the run record is retained【3】.  \n- A run can be resumed at most **10 times**【3】.  \n- The workflow version must still exist (cannot be deleted)【3】.  \n- A `cancelled` run cannot be resumed; start a new run instead【3】.  \n\nIf the run is too old, cancelled, or exceeds the resume limit, the API returns `RUN_409_NOT_RESUMABLE`【4】."
+      },
+      {
+        "id": "d02",
+        "question": "What does error AUTH_403_SCOPE mean and how do I fix it?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing reference to checking scopes via GET /v1/connections/{id}/scopes",
+        "latencyMs": 2533,
+        "retrievedSources": [
+          "data/docs/04-authentication-and-scopes.md",
+          "data/docs/07-error-reference.md"
+        ],
+        "answer": "**Meaning**  \n`AUTH_403_SCOPE` indicates that the connection used by the step does not contain a required OAuth scope — the step needs a scope that the connection was not authorized for【1】.\n\n**Fix**  \n1. Open **Connections** in the UI.  \n2. Locate the connection listed under `missing_scopes`.  \n3. Click **Re‑authorise**; the OAuth flow will request the current full set of scopes required by the published workflow【1】.  \n4. Resume the failed run from the step that errored【1】.  \n\nIf re‑authorising does not resolve the issue, the provider account itself lacks the permission; an admin must grant the missing scope and then re‑authorise the connection【1】.  \n\n(Do not broaden the scope request for all connections; Relay intentionally fails closed on missing scopes【3】.)"
+      },
+      {
+        "id": "d03",
+        "question": "What are the rate limits and how should I handle a 429?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer covers all rubric points and adds no contradictions.",
+        "latencyMs": 2790,
+        "retrievedSources": [
+          "data/docs/05-rate-limits.md",
+          "data/docs/07-error-reference.md"
+        ],
+        "answer": "**Rate limits (per workspace)**  \n\n| Plan | Requests / minute | Concurrent runs | Burst |\n|------|-------------------|-----------------|-------|\n| Starter | 120 | 5 | 200 |\n| Growth | 600 | 25 | 900 |\n| Enterprise | 3,000 | 200 | negotiated |【2】\n\n*Run‑start requests count double against the per‑minute limit*【2】  \n\n**Handling a 429 (RATE_LIMIT_EXCEEDED)**  \n\n1. The response body is:  \n   ```json\n   { \"error\": \"RATE_LIMIT_EXCEEDED\",\n     \"message\": \"Workspace limit of 600 req/min exceeded\",\n     \"retry_after\": 12 }\n   ```【1】  \n2. Read the `Retry-After` header (seconds) and **honour it**; do not implement your own back‑off schedule【1】.  \n3. Add jitter if many clients may retry simultaneously to avoid lockstep retries【1】.  \n4. Inside a workflow you normally don’t need custom code: 429 is in the default `retry_on` set, so steps auto‑back‑off. Adjust `max_delay` if you need a longer throttle window to prevent premature run failure【1】.  \n\n**Optional diagnostics** – each response also includes rate‑limit headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`) to monitor usage【3】."
+      },
+      {
+        "id": "d04",
+        "question": "How do I pass data between two steps?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly references step id in {{ }} expression and covers required roots.",
+        "latencyMs": 5384,
+        "retrievedSources": [
+          "data/docs/02-passing-data-between-steps.md",
+          "data/docs/03-retries-and-recovery.md"
+        ],
+        "answer": "- Each step writes its result into the run context under its own **`id`**.  \n- Later steps read that data with a `{{ }}` expression that references the step id and the desired field (e.g., `body`, `text`, `headers`, `status`).  \n\n**Example**\n\n```yaml\nsteps:\n  - id: fetch_customer\n    type: http.request\n    with:\n      method: GET\n      url: https://api.example.com/customers/{{ trigger.body.customer_id }}\n\n  - id: create_ticket\n    type: zendesk.create_ticket\n    with:\n      connection_id: conn_8812\n      subject: \"Renewal for {{ fetch_customer.body.name }}\"\n      requester_email: \"{{ fetch_customer.body.email }}\"\n```\n\n- `fetch_customer.body` → parsed JSON response.  \n- `fetch_customer.text` → raw response text.  \n- `fetch_customer.headers` → response headers.  \n- `fetch_customer.status` → HTTP status code.  \n\nUse these expressions in any subsequent step to pass data forward【2】."
+      },
+      {
+        "id": "d05",
+        "question": "How long can I resume a failed run for?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing the limit of 10 resumes per run",
+        "latencyMs": 10124,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "You can resume a failed run for **up to 14 days** after the failure, provided the run record is still retained【1】."
+      },
+      {
+        "id": "d06",
+        "question": "What is the default retry policy?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches all rubric points",
+        "latencyMs": 7024,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/05-rate-limits.md",
+          "data/docs/02-passing-data-between-steps.md"
+        ],
+        "answer": "- **max_attempts:** 3  \n- **backoff:** exponential  \n- **initial_delay:** 1 second (jittered)  \n- **retryable failures:** connection errors, timeouts, HTTP 429, and HTTP 5xx [1]"
+      },
+      {
+        "id": "d07",
+        "question": "Why did my scheduled workflow not run twice at 7am?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing mention of overlapping runs and allow_overlap behavior",
+        "latencyMs": 9770,
+        "retrievedSources": [
+          "data/docs/07-error-reference.md",
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/01-concepts.md",
+          "data/docs/03-retries-and-recovery.md"
+        ],
+        "answer": "The schedule trigger skips a second execution when the clock moves back. On a daylight‑saving “clock‑back” night a cron that would otherwise match twice is recorded only once, so the workflow runs a single time at 07:00 local time【2】."
+      },
+      {
+        "id": "d08",
+        "question": "How do I verify that a webhook really came from my system?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer meets all rubric requirements.",
+        "latencyMs": 8430,
+        "retrievedSources": [
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/04-authentication-and-scopes.md",
+          "data/docs/05-rate-limits.md"
+        ],
+        "answer": "Add a signature verification block to the webhook trigger definition:\n\n```yaml\ntrigger:\n  type: webhook\n  with:\n    method: POST\n    signature:\n      algorithm: hmac-sha256          # HMAC algorithm\n      header: X-Signature            # Header containing the signature\n      secret: \"{{ secrets.WEBHOOK_SECRET }}\"  # Shared secret\n```\n\nRelay will compute the HMAC of the request body using the provided secret and compare it to the value in the `X-Signature` header. Requests that fail verification are rejected with **401 Unauthorized** and are not recorded as runs【1】."
+      },
+      {
+        "id": "d09",
+        "question": "What happens to runs that exhaust their retries?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer matches rubric exactly.",
+        "latencyMs": 8330,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "Runs that exhaust their retry attempts are placed in the workspace dead‑letter queue, where they remain for **14 days** and can be resumed in bulk. Enable alerting on DLQ depth in **Settings → Alerts** (default threshold = 25)【2】."
+      },
+      {
+        "id": "d10",
+        "question": "What is the difference between resume and replay?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": false,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly distinguishes resume and replay.",
+        "latencyMs": 10440,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/07-error-reference.md"
+        ],
+        "answer": "**Resume**  \n- Re‑executes only the failed step (or a later step you specify). Earlier steps are **not** re‑run; their outputs are taken from the existing run context.  \n- API: `POST /v1/runs/{run_id}/resume` with optional body `{ \"from_step\": \"step_name\" }`.  \n- Used for environmental failures (e.g., expired credential, provider outage).  \n\n**Replay**  \n- Starts a **new run** that re‑executes the entire workflow from the beginning, using the original trigger payload.  \n- API: `POST /v1/runs/{run_id}/replay`.  \n- The new run is linked to the original via the `replay_of` field.  \n- Intended when the input was correct but the workflow logic has been fixed.  "
+      },
+      {
+        "id": "d11",
+        "question": "What idempotency key should I use when resuming?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly uses a stable key based on run.id and avoids now()",
+        "latencyMs": 9549,
+        "retrievedSources": [
+          "data/docs/03-retries-and-recovery.md",
+          "data/docs/04-authentication-and-scopes.md"
+        ],
+        "answer": "Use the same run‑specific value you used for the original request, e.g.:\n\n```yaml\nheaders:\n  Idempotency-Key: \"{{ run.id }}-push_invoice\"\n```\n\nThe key must be built from `run.id` (not `now()`) so that retries or a resume are recognised as duplicates by the provider【1】."
+      },
+      {
+        "id": "d12",
+        "question": "How long does a synchronous webhook caller wait before timing out?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": false,
+        "refusedCorrectly": null,
+        "judgeNote": "Missing mention of default 202 Accepted behavior",
+        "latencyMs": 8481,
+        "retrievedSources": [
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/01-concepts.md",
+          "data/docs/05-rate-limits.md"
+        ],
+        "answer": "The caller waits up to **30 seconds**; after that it receives a 504 response and the workflow continues in the background【1】."
+      },
+      {
+        "id": "d13",
+        "question": "Can I run arbitrary JavaScript inside a {{ }} expression?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly states restrictions and alternative transform step.",
+        "latencyMs": 8828,
+        "retrievedSources": [
+          "data/docs/02-passing-data-between-steps.md",
+          "data/docs/07-error-reference.md",
+          "data/docs/01-concepts.md"
+        ],
+        "answer": "No. `{{ }}` expressions are limited to property access, array indexing, and a small helper library; they do not allow arbitrary JavaScript execution【1】. For more complex logic you must use a `transform` step, which runs sandboxed JavaScript with a 2‑second limit【4】."
+      },
+      {
+        "id": "d14",
+        "question": "What is the maximum concurrency on a for_each step?",
+        "answerable": true,
+        "retrievalHit": true,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": null,
+        "judgeNote": "Answer correctly states default and cap",
+        "latencyMs": 5989,
+        "retrievedSources": [
+          "data/docs/02-passing-data-between-steps.md",
+          "data/docs/05-rate-limits.md",
+          "data/docs/01-concepts.md",
+          "data/docs/06-webhooks-and-triggers.md",
+          "data/docs/03-retries-and-recovery.md"
+        ],
+        "answer": "The `concurrency` value for a `for_each` step cannot exceed **20** (default 5, capped at 20)【1】."
+      },
+      {
+        "id": "d15",
+        "question": "How do I configure single sign-on with Okta for Relay?",
+        "answerable": false,
+        "retrievalHit": null,
+        "groundingOk": true,
+        "accurate": true,
+        "refusedCorrectly": true,
+        "judgeNote": "correctly declined",
+        "latencyMs": 5108,
+        "retrievedSources": [
+          "data/docs/01-concepts.md",
+          "data/docs/04-authentication-and-scopes.md"
+        ],
+        "answer": "The provided documentation does not contain any information about configuring single sign‑on with Okta for Relay."
+      }
+    ]
+  }
+}
