@@ -95,7 +95,7 @@ export default function HowItWorksPage() {
                   ["Orchestration", "LangChain v1 (core, Groq, Google GenAI, text splitters)"],
                   ["Vector store", "Supabase Postgres · pgvector · HNSW"],
                   ["Keyword search", "Postgres full-text · GIN index · lexemes OR-ed, ranked by ts_rank_cd"],
-                  ["Generation", "Groq gpt-oss-120b — streamed over SSE, falls back to gpt-oss-20b at the quota"],
+                  ["Generation", "Groq gpt-oss-120b, streamed over SSE, stepping down a four-model chain across two providers when a per-minute quota is hit"],
                   ["Embeddings", "Gemini gemini-embedding-2 · 768 dimensions · separate document and query encoders"],
                   ["Evaluation", "45 fixed cases, model-graded against per-question rubrics"],
                 ].map(([k, v]) => (

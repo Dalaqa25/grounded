@@ -67,7 +67,7 @@ same question twice — the retrieval panel shows why fusion is there.
 | Orchestration | LangChain v1 — `@langchain/core`, `@langchain/groq`, `@langchain/google-genai`, `@langchain/textsplitters` |
 | Vector store | Supabase Postgres · pgvector · HNSW index |
 | Keyword search | Postgres full-text · GIN index · lexemes OR-ed and ranked with `ts_rank_cd` |
-| Generation | Groq `gpt-oss-120b`, streamed over server-sent events, falling back to `gpt-oss-20b` at the quota |
+| Generation | Groq `gpt-oss-120b`, streamed over SSE, stepping down a four-model chain across two providers at the quota |
 | Embeddings | Gemini `gemini-embedding-2` at 768 dimensions, separate document and query encoders |
 
 ## Running it
@@ -201,6 +201,25 @@ supabase/schema.sql       tables, indexes, hybrid_search()
 data/                     the three corpora + 45 eval cases
 scripts/                  ingest, eval, models
 ```
+
+## Staying up on a free tier
+
+Groq meters tokens per minute per model *and* per organisation, which one
+visitor clicking through a demo can exhaust. Generation therefore walks a
+chain and reports which model answered:
+
+```
+openai/gpt-oss-120b  →  openai/gpt-oss-20b  →  qwen/qwen3.8-27b  →  gemini-3.7-flash
+└──────────────────────────── Groq ───────────────────────────┘     └── Google ──┘
+```
+
+A rate limit is a reason to step down, never to wait: on an interactive
+request a second model now beats the same model in twenty seconds.
+
+The last link is a different provider on purpose. More Groq models eventually
+share one organisation ceiling, so the chain only truly widens by leaving. The
+obvious alternative — a second Groq account — is circumventing a rate limit
+rather than engineering around one, and this repository is public.
 
 ## Notes and limits
 

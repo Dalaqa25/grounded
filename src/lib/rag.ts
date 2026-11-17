@@ -1,5 +1,12 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { chatModel, isRateLimited, modelAt, modelChain, withGroqRetry } from "./llm";
+import {
+  chatModel,
+  displayModelName,
+  isRateLimited,
+  modelAt,
+  modelChain,
+  withGroqRetry,
+} from "./llm";
 import type { Mode } from "./modes";
 import type { ChatTurn, RetrievedChunk } from "./types";
 
@@ -86,10 +93,6 @@ export async function* streamAnswer(
    */
   opts: { chain?: boolean } = {},
 ): AsyncGenerator<string> {
-  // 900 truncated list answers mid-sentence in testing; these corpora
-  // routinely need eight or nine cited bullets.
-  const model = chatModel({ temperature: 0.1, maxTokens: 1500 });
-
   const messages = [
     new SystemMessage(buildSystemPrompt(mode, chunks)),
     ...history.slice(-4).map((t) =>
@@ -105,17 +108,21 @@ export async function* streamAnswer(
   // retried in place here — on an interactive request a second model now
   // beats the same model in twenty seconds.
   const chain = opts.chain === false ? modelChain().slice(0, 1) : modelChain();
-  let stream: Awaited<ReturnType<typeof model.stream>> | null = null;
+  // Every link is built the same way, including the first. Special-casing the
+  // head meant the primary could only ever be a Groq model, so the chain could
+  // not be reordered or pointed at another provider from configuration.
+  // 1500 output tokens: 900 truncated list answers mid-sentence in testing.
+  let stream: Awaited<ReturnType<ReturnType<typeof modelAt>["stream"]>> | null = null;
   let lastError: unknown;
 
   for (const [index, name] of chain.entries()) {
-    const candidate = index === 0 ? model : modelAt(name, { maxTokens: 1500 });
+    const candidate = modelAt(name, { maxTokens: 1500 });
     try {
       stream = await withGroqRetry(() => candidate.stream(messages), {
         attempts: opts.chain === false ? 6 : 2,
         maxWaitMs: index === chain.length - 1 ? (opts.chain === false ? 45_000 : 3_000) : 0,
       });
-      onModel?.(name);
+      onModel?.(displayModelName(name));
       break;
     } catch (error) {
       lastError = error;

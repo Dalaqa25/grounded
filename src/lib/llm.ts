@@ -1,5 +1,10 @@
 import { ChatGroq } from "@langchain/groq";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { env } from "./env";
+
+/** Prefix marking a chain entry as Gemini rather than Groq. */
+const GEMINI = "google:";
 
 /**
  * Groq runs open-weight models on custom silicon, so time-to-first-token is in
@@ -63,10 +68,39 @@ export function modelChain(): string[] {
   return [GROQ_MODEL, ...rest.filter((m) => m !== GROQ_MODEL)];
 }
 
+/**
+ * Builds whichever provider the chain entry names.
+ *
+ * The last link is Gemini rather than a fourth Groq model, and that choice is
+ * deliberate. Groq meters tokens per minute per *organisation*, so more Groq
+ * models eventually share one ceiling; a different provider brings its own.
+ * The obvious alternative — a second Groq account — would be circumventing a
+ * rate limit rather than engineering around one, and this repository is
+ * public.
+ *
+ * Gemini is slower to first token than Groq (seconds, not milliseconds), so
+ * it sits last: it is what a visitor gets when everything faster is busy,
+ * which beats an error.
+ */
 export function modelAt(
   name: string,
   opts: { temperature?: number; maxTokens?: number } = {},
-) {
+): BaseChatModel {
+  if (name.startsWith(GEMINI)) {
+    const { GOOGLE_API_KEY } = env();
+    return new ChatGoogleGenerativeAI({
+      apiKey: GOOGLE_API_KEY,
+      model: name.slice(GEMINI.length),
+      temperature: opts.temperature ?? 0.1,
+      maxOutputTokens: opts.maxTokens ?? 1500,
+      // Gemini 3.x counts its own deliberation against the output budget.
+      // Left alone it spends the allowance thinking and returns a truncated
+      // answer — the same failure gpt-oss had, from the other direction.
+      thinkingConfig: { thinkingBudget: 0, includeThoughts: false },
+      maxRetries: 0,
+    }) as unknown as BaseChatModel;
+  }
+
   const { GROQ_API_KEY } = env();
   return new ChatGroq({
     apiKey: GROQ_API_KEY,
@@ -75,7 +109,12 @@ export function modelAt(
     maxTokens: opts.maxTokens ?? 900,
     reasoningEffort: "low",
     maxRetries: 0,
-  });
+  }) as unknown as BaseChatModel;
+}
+
+/** A chain entry rendered for the reader, without the provider prefix. */
+export function displayModelName(name: string): string {
+  return name.startsWith(GEMINI) ? name.slice(GEMINI.length) : name;
 }
 
 export function modelName(): string {
